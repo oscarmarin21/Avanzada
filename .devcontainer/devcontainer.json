@@ -1,0 +1,27 @@
+{
+  "name": "Avanzada (Java + Angular + MariaDB)",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspaces/Avanzada",
+
+  "forwardPorts": [9000, 4000, 3307],
+  "portsAttributes": {
+    "9000": { "label": "Backend (Spring Boot)" },
+    "4000": { "label": "Frontend (Angular)" },
+    "3307": { "label": "MariaDB" }
+  },
+
+  "postCreateCommand": "cd /workspaces/Avanzada/frontend && npm install",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {}
+    }
+  }
+}

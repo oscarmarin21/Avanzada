@@ -1,0 +1,53 @@
+# Build outputs
+target/
+build/
+out/
+dist/
+*.jar
+*.war
+*.class
+
+# Node / Angular
+node_modules/
+.npm
+.angular/
+*.tsbuildinfo
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.cursor/
+
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Env and secrets
+.env
+.env.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/maven-wrapper.jar
+!**/src/test/**/maven-wrapper.jar
+
+# Spring Boot
+spring-boot-devtools.properties
+
+# Docker
+.docker/
+
+# Project / plans (local only)
+PLAN/
+
+# Misc
+*.bak
+*.tmp
+.cache/

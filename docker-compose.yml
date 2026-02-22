@@ -1,0 +1,47 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: avanzada-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: avanzada
+      MARIADB_USER: avanzada
+      MARIADB_PASSWORD: avanzada
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: avanzada-backend
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MARIADB_DATABASE: avanzada
+      MARIADB_USER: avanzada
+      MARIADB_PASSWORD: avanzada
+    ports:
+      - "9000:9000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: avanzada-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4000:80"
+
+volumes:
+  mariadb_data:

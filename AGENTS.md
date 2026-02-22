@@ -1,0 +1,105 @@
+# Avanzada – Instructions for the AI agent
+
+This document provides context for the AI agent to work on the **Avanzada** monorepo: Backend (Java Spring Boot), Frontend (Angular) and MariaDB, orchestrated with Docker.
+
+## Project standards (always apply)
+
+See **`.cursor/rules/project-standards.mdc`** for the full rule (always applied). Summary:
+
+1. **Documentation**: Keep `README.md`, `AGENTS.md`, and `.cursor/rules/` up to date with the repo. Update them when changing structure, ports, or behaviour.
+2. **English**: Code, comments, and documentation (including this file when editing) in English.
+3. **Clean code & SOLID**: Single responsibility, dependency injection, thin controllers, services for logic; avoid duplication and keep names and functions clear.
+
+## Project structure
+
+```
+Avanzada/
+├── backend/                 # Java Spring Boot 3.x (Java 21)
+│   ├── src/main/java/com/avanzada/
+│   │   ├── AvanzadaApplication.java
+│   │   ├── controller/       # @RestController
+│   │   ├── entity/           # JPA entities
+│   │   └── repository/      # JPA repositories
+│   ├── src/main/resources/
+│   │   └── application.yml  # Profiles: default (local), docker
+│   ├── pom.xml
+│   └── Dockerfile
+├── frontend/                # Angular 18, standalone components
+│   ├── src/app/             # Components, routes, config
+│   ├── angular.json         # serve port 4000, proxy to backend
+│   ├── proxy.conf.json      # /api -> http://localhost:9000 (dev)
+│   ├── nginx.conf           # /api/ -> backend:9000 (Docker)
+│   ├── package.json
+│   └── Dockerfile
+├── .devcontainer/           # Dev Containers: devcontainer.json, Dockerfile, docker-compose
+├── .vscode/                 # tasks.json (Backend/Frontend auto-run on open); may be in .gitignore
+├── docker-compose.yml       # mariadb, backend, frontend
+├── .cursor/rules/           # Rules by context (Java, Angular, Docker)
+├── AGENTS.md                # This file
+└── README.md
+```
+
+Note: `.vscode/` and `.cursor/` may be in `.gitignore`; they are still part of the development flow (Dev Containers, tasks, AI rules).
+
+## Ports
+
+| Service   | Host port | Usage |
+|-----------|-----------|-------|
+| Backend   | 9000      | Spring Boot API |
+| Frontend  | 4000      | Angular (dev) or nginx (Docker) |
+| MariaDB   | 3307      | Host access (3306 inside Docker network) |
+
+Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend in Docker calls the backend at `http://backend:9000` via nginx proxy (`/api/`).
+
+## How to run
+
+- **Full Docker**: from repo root:
+  - `docker compose build`
+  - `docker compose up` (or `docker compose up -d`)
+  - Frontend: http://localhost:4000 — Backend: http://localhost:9000 — Health: http://localhost:9000/health
+- **Local backend**: default profile in `application.yml` (DB at `localhost:3307`). Ensure MariaDB is up (e.g. `docker compose up mariadb -d`) and run the Spring Boot app (IDE or `mvn spring-boot:run`).
+- **Local frontend**: `cd frontend && npm ci && npm start` (port 4000, proxy `/api` → `http://localhost:9000`).
+- **Dev Containers**: with the Dev Containers extension, open the repo in container; `.devcontainer/` includes the `dev` service with Java 21, Maven, Node and Angular CLI. Ports 9000, 4000 and 3307 are forwarded to the host. Optionally, `.vscode/tasks.json` defines "Backend: Spring Boot" and "Frontend: Angular" tasks that can run on folder open (runOn: folderOpen).
+
+## Conventions and where to edit
+
+- **Backend (Java)**  
+  - Base package: `com.avanzada`.  
+  - Config: `backend/src/main/resources/application.yml`. Profile `docker` uses env vars and host `mariadb:3306`.  
+  - New endpoints: controllers in `backend/src/main/java/com/avanzada/controller/`.  
+  - JPA entities in `entity/`, repositories in `repository/`.  
+  - Validation: `spring-boot-starter-validation`; use DTOs and `@Valid` where applicable.  
+  - See `.cursor/rules/` for Java/Spring code standards.
+
+- **Frontend (Angular)**  
+  - Project: `frontend`, component prefix `app`.  
+  - Angular 18 with standalone components.  
+  - API calls: use relative path `/api/...` so that in dev (proxy) and Docker (nginx) they target the backend.  
+  - Serve/proxy config: `angular.json` (port 4000) and `proxy.conf.json`.  
+  - See `.cursor/rules/` for Angular/TypeScript patterns.
+
+- **Docker**  
+  - `docker-compose.yml`: services `mariadb`, `backend`, `frontend`. Backend depends on MariaDB (healthcheck).  
+  - Backend: Eclipse Temurin 21 image, port 9000, profile `docker`.  
+  - Frontend: build with Node, run with nginx on port 80 (mapped 4000:80).  
+  - Backend env vars in compose: `SPRING_PROFILES_ACTIVE`, `MARIADB_*` (DB, user, password).  
+  - See `.cursor/rules/` for Dockerfile and compose.
+
+## Validation and testing
+
+- **Backend**: `cd backend && mvn verify` (includes tests). To only compile: `mvn compile`.
+- **Frontend**: `cd frontend && npm run build` (production build). Tests: `npm test`.
+- **Docker**: after code changes, rebuild with `docker compose build [backend|frontend]` then `docker compose up`.
+
+## Reference plan
+
+The monorepo design and ports follow the plan in `.cursor/plans/monorepo_java_angular_docker_7943f96b.plan.md`. For extending services (more ports, new containers) refer to that plan and keep this documentation aligned.
+
+## Summary for the agent
+
+1. **Structure**: Backend in `backend/`, frontend in `frontend/`, orchestration at root.  
+2. **Ports**: 9000 backend, 4000 frontend, 3307 MariaDB (host).  
+3. **Config**: Backend by profiles in `application.yml`; in Docker use profile `docker` and host `mariadb`.  
+4. **API from frontend**: Always under `/api/` so proxy (dev) and nginx (Docker) route to the backend.  
+5. **Additional rules**: Apply the rules in `.cursor/rules/` according to the file type being edited.  
+6. **Dev Containers**: If the user works inside the dev container, the backend must use profile `docker` (connection to `mariadb:3306`). The tasks in `.vscode/tasks.json` already set `SPRING_PROFILES_ACTIVE=docker` for the backend.
