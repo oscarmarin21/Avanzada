@@ -62,6 +62,13 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--init-data
 
 After that, start the backend normally (`mvn spring-boot:run`) and log in at http://localhost:4000/login with `admin` / `admin123`. The command is idempotent: you can run it again without duplicating data.
 
+**Full DB reset (drop all tables, recreate schema, then init-data):** use the `reset` profile so Hibernate runs with `ddl-auto: create`. Use the same profile as your backend (e.g. `docker` in dev container). If port 9000 is in use, pick another port:
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.arguments="--init-data --server.port=9001" -Dspring-boot.run.profiles=docker,reset
+```
+
 ### Backend
 
 With MariaDB running (Docker or local on 3307):

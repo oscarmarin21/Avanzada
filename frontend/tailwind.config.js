@@ -2,6 +2,10 @@
 module.exports = {
   content: [
     "./src/**/*.{html,ts}",
+    "./node_modules/flowbite/**/*.js",
+  ],
+  plugins: [
+    require('flowbite/plugin'),
   ],
   theme: {
     extend: {
@@ -11,6 +15,7 @@ module.exports = {
           DEFAULT: "#0d5c2e",
           light: "#157340",
           dark: "#0a4722",
+          300: "#6b9b7d",
         },
         uniquindio: {
           green: "#0d5c2e",

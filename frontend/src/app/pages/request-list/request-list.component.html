@@ -1,76 +1,79 @@
-<h1 class="text-2xl font-semibold text-gray-900 mb-4">Requests</h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Requests</h1>
 
 @if (error()) {
-  <p class="text-red-600 mb-2">{{ error() }}</p>
+  <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ error() }}</div>
 }
 
-<div class="flex flex-wrap gap-4 items-end mb-4">
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">State</span>
-    <select [ngModel]="filterState()" (ngModelChange)="filterState.set($event)" class="min-w-[140px] rounded border border-gray-300 px-3 py-2 text-sm">
+<div class="flex flex-wrap gap-4 items-end mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow">
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">State</label>
+    <select [ngModel]="filterState()" (ngModelChange)="filterState.set($event)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[140px] p-2.5">
       <option value="">All</option>
       @for (s of states(); track s.id) {
         <option [value]="s.code">{{ s.name }}</option>
       }
     </select>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Type</span>
-    <select [ngModel]="filterRequestType()" (ngModelChange)="filterRequestType.set($event)" class="min-w-[140px] rounded border border-gray-300 px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">Type</label>
+    <select [ngModel]="filterRequestType()" (ngModelChange)="filterRequestType.set($event)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[140px] p-2.5">
       <option value="">All</option>
       @for (rt of requestTypes(); track rt.id) {
         <option [value]="rt.id">{{ rt.name }}</option>
       }
     </select>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Priority</span>
-    <select [ngModel]="filterPriority()" (ngModelChange)="filterPriority.set($event)" class="min-w-[140px] rounded border border-gray-300 px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">Priority</label>
+    <select [ngModel]="filterPriority()" (ngModelChange)="filterPriority.set($event)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[140px] p-2.5">
       <option value="">All</option>
       @for (p of priorities; track p) {
         <option [value]="p">{{ p }}</option>
       }
     </select>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Assigned to</span>
-    <select [ngModel]="filterAssignedTo()" (ngModelChange)="filterAssignedTo.set($event)" class="min-w-[140px] rounded border border-gray-300 px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">Assigned to</label>
+    <select [ngModel]="filterAssignedTo()" (ngModelChange)="filterAssignedTo.set($event)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[140px] p-2.5">
       <option value="">All</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
       }
     </select>
-  </label>
-  <button type="button" (click)="applyFilters()" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Apply</button>
-  <button type="button" (click)="clearFilters()" class="px-4 py-2 rounded border border-gray-300 bg-white font-medium hover:bg-gray-50">Clear</button>
+  </div>
+  <button type="button" (click)="applyFilters()" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Apply</button>
+  <button type="button" (click)="clearFilters()" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Clear</button>
 </div>
 
 @if (loading()) {
-  <p class="text-gray-600">Loading…</p>
+  <div class="flex items-center gap-2 text-gray-600">
+    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    <span>Loading…</span>
+  </div>
 } @else {
-  <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="bg-gray-50">
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">Id</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">Type</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">State</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">Priority</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">Assigned to</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200">Registered</th>
-          <th class="px-3 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-200"></th>
+  <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-4">Id</th>
+          <th scope="col" class="px-6 py-4">Type</th>
+          <th scope="col" class="px-6 py-4">State</th>
+          <th scope="col" class="px-6 py-4">Priority</th>
+          <th scope="col" class="px-6 py-4">Assigned to</th>
+          <th scope="col" class="px-6 py-4">Registered</th>
+          <th scope="col" class="px-6 py-4"><span class="sr-only">Actions</span></th>
         </tr>
       </thead>
       <tbody>
         @for (r of requests(); track r.id) {
-          <tr class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="px-3 py-2 text-sm text-gray-900">{{ r.id }}</td>
-            <td class="px-3 py-2 text-sm text-gray-900">{{ r.requestTypeName ?? r.requestTypeCode ?? r.requestTypeId }}</td>
-            <td class="px-3 py-2 text-sm text-gray-900">{{ r.stateName ?? r.stateCode ?? r.stateId }}</td>
-            <td class="px-3 py-2 text-sm text-gray-900">{{ r.priority ?? '—' }}</td>
-            <td class="px-3 py-2 text-sm text-gray-900">{{ r.assignedToName ?? r.assignedToIdentifier ?? '—' }}</td>
-            <td class="px-3 py-2 text-sm text-gray-600">{{ r.registeredAt | date:'short' }}</td>
-            <td class="px-3 py-2"><a [routerLink]="['/requests', r.id]" class="text-primary font-medium hover:underline">View</a></td>
+          <tr class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">{{ r.id }}</td>
+            <td class="px-6 py-4 text-gray-900">{{ r.requestTypeName ?? r.requestTypeCode ?? r.requestTypeId }}</td>
+            <td class="px-6 py-4 text-gray-900">{{ r.stateName ?? r.stateCode ?? r.stateId }}</td>
+            <td class="px-6 py-4 text-gray-900">{{ r.priority ?? '—' }}</td>
+            <td class="px-6 py-4 text-gray-900">{{ r.assignedToName ?? r.assignedToIdentifier ?? '—' }}</td>
+            <td class="px-6 py-4 text-gray-600">{{ r.registeredAt | date:'short' }}</td>
+            <td class="px-6 py-4"><a [routerLink]="['/requests', r.id]" class="font-medium text-primary hover:underline">View</a></td>
           </tr>
         }
       </tbody>

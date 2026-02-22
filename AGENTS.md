@@ -26,7 +26,7 @@ Avanzada/
 │   │   └── application.yml  # Profiles: default (local), docker
 │   ├── pom.xml
 │   └── Dockerfile
-├── frontend/                # Angular 18, standalone components, Tailwind CSS only
+├── frontend/                # Angular 18, standalone components, Tailwind CSS + Flowbite
 │   ├── src/app/             # Components, routes, config
 │   ├── tailwind.config.js   # Theme (colors, etc.) and content paths
 │   ├── DESIGN.md            # Design system and Tailwind patterns
@@ -61,7 +61,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
   - `docker compose build`
   - `docker compose up` (or `docker compose up -d`)
   - Frontend: http://localhost:4000 — Backend: http://localhost:9000 — Health: http://localhost:9000/health
-- **Local backend**: default profile in `application.yml` (DB at `localhost:3307`). Ensure MariaDB is up (e.g. `docker compose up mariadb -d`) and run the Spring Boot app (IDE or `mvn spring-boot:run`). To seed reference data and an admin user (identifier `admin`, password `admin123`), run once: `mvn spring-boot:run -Dspring-boot.run.arguments=--init-data`; the process will init and exit.
+- **Local backend**: default profile in `application.yml` (DB at `localhost:3307`). Ensure MariaDB is up (e.g. `docker compose up mariadb -d`) and run the Spring Boot app (IDE or `mvn spring-boot:run`). To seed reference data and an admin user (identifier `admin`, password `admin123`), run once: `mvn spring-boot:run -Dspring-boot.run.arguments=--init-data`; the process will init and exit. To fully reset the DB (drop tables, recreate, then init-data), use profiles `docker,reset` and `--init-data` (see README).
 - **Local frontend**: `cd frontend && npm ci && npm start` (port 4000, proxy `/api` → `http://localhost:9000`).
 - **Dev Containers**: with the Dev Containers extension, open the repo in container; `.devcontainer/` includes the `dev` service with Java 21, Maven, Node and Angular CLI. Ports 9000, 4000 and 3307 are forwarded to the host. Optionally, `.vscode/tasks.json` defines "Backend: Spring Boot" and "Frontend: Angular" tasks that can run on folder open (runOn: folderOpen).
 
@@ -78,7 +78,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
 - **Frontend (Angular)**  
   - Project: `frontend`, component prefix `app`.  
   - Angular 18 with standalone components.  
-  - **Styling**: Tailwind CSS only. No component or global CSS files; use Tailwind utility classes. Theme and patterns are in `tailwind.config.js` and documented in `frontend/DESIGN.md`. Do not add `styleUrl` or new `.css` files.  
+  - **Styling**: Tailwind CSS and Flowbite. No component or global CSS files; use Tailwind + Flowbite utility/component classes. Theme in `tailwind.config.js`, patterns and Flowbite usage in `frontend/DESIGN.md`. Interactive components are initialised via `initFlowbite()` in `AppComponent`. Do not add `styleUrl` or new `.css` files.  
   - API calls: use relative path `/api/...` so that in dev (proxy) and Docker (nginx) they target the backend.  
   - Serve/proxy config: `angular.json` (port 4000) and `proxy.conf.json`.  
   - See `.cursor/rules/` for Angular/TypeScript patterns.

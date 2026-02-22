@@ -1,18 +1,21 @@
-<a routerLink="/" class="text-primary font-medium hover:underline mb-4 inline-block">← Back to list</a>
+<a routerLink="/" class="inline-flex items-center gap-1 font-medium text-primary hover:underline mb-6">← Back to list</a>
 
 @if (loading()) {
-  <p class="text-gray-600">Loading…</p>
+  <div class="flex items-center gap-2 text-gray-600">
+    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    <span>Loading…</span>
+  </div>
 } @else if (error()) {
-  <p class="text-red-600">{{ error() }}</p>
+  <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ error() }}</div>
 } @else {
   @if (request(); as reqRef) {
-  <h1 class="text-2xl font-semibold text-gray-900 mb-4">Request #{{ reqRef.id }}</h1>
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Request #{{ reqRef.id }}</h1>
 
   @if (actionError()) {
-    <p class="text-red-600 mb-2">{{ actionError() }}</p>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ actionError() }}</div>
   }
 
-  <section class="mb-6 p-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <section class="mb-6 p-6 bg-white border border-gray-200 rounded-lg shadow">
     <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">Details</h2>
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
       <dt class="font-semibold text-gray-700">Description</dt>
@@ -45,94 +48,94 @@
   </section>
 
   @if (!isClosed()) {
-    <section class="flex flex-wrap gap-2 mb-6">
+    <section class="flex flex-wrap gap-3 mb-6">
       @if (canClassify() && auth.canClassifyOrAssign()) {
         @if (showClassify()) {
-          <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
             <h3 class="text-base font-semibold text-gray-900 mb-3">Classify</h3>
             <form (ngSubmit)="submitClassify()" class="flex flex-wrap gap-3 items-end">
-              <label class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Type</span>
-                <select [(ngModel)]="classifyForm.requestTypeId" name="requestTypeId" required class="rounded border border-gray-300 px-3 py-2 text-sm min-w-[160px]">
+              <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700">Type</label>
+                <select [(ngModel)]="classifyForm.requestTypeId" name="requestTypeId" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[160px] p-2.5">
                   @for (rt of requestTypes(); track rt.id) {
                     <option [value]="rt.id">{{ rt.name }}</option>
                   }
                 </select>
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Priority</span>
-                <select [(ngModel)]="classifyForm.priority" name="priority" class="rounded border border-gray-300 px-3 py-2 text-sm">
+              </div>
+              <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700">Priority</label>
+                <select [(ngModel)]="classifyForm.priority" name="priority" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
                   <option value="LOW">LOW</option>
                   <option value="MEDIUM">MEDIUM</option>
                   <option value="HIGH">HIGH</option>
                 </select>
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Justification</span>
-                <input type="text" [(ngModel)]="classifyForm.priorityJustification" name="priorityJustification" class="rounded border border-gray-300 px-3 py-2 text-sm min-w-[200px]" />
-              </label>
-              <button type="submit" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Classify</button>
-              <button type="button" (click)="showClassify.set(false)" class="px-4 py-2 rounded border border-gray-300 bg-white font-medium hover:bg-gray-50">Cancel</button>
+              </div>
+              <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700">Justification</label>
+                <input type="text" [(ngModel)]="classifyForm.priorityJustification" name="priorityJustification" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5" />
+              </div>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Classify</button>
+              <button type="button" (click)="showClassify.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showClassify.set(true)" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Classify</button>
+          <button type="button" (click)="showClassify.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Classify</button>
         }
       }
       @if (canAssign() && auth.canClassifyOrAssign()) {
         @if (showAssign()) {
-          <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
             <h3 class="text-base font-semibold text-gray-900 mb-3">Assign</h3>
             <form (ngSubmit)="submitAssign()" class="flex flex-wrap gap-3 items-end">
-              <label class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Assigned to</span>
-                <select [(ngModel)]="assignForm.assignedToId" name="assignedToId" required class="rounded border border-gray-300 px-3 py-2 text-sm min-w-[200px]">
+              <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700">Assigned to</label>
+                <select [(ngModel)]="assignForm.assignedToId" name="assignedToId" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5">
                   <option [value]="0">Select user</option>
                   @for (u of users(); track u.id) {
                     <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
                   }
                 </select>
-              </label>
-              <button type="submit" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Assign</button>
-              <button type="button" (click)="showAssign.set(false)" class="px-4 py-2 rounded border border-gray-300 bg-white font-medium hover:bg-gray-50">Cancel</button>
+              </div>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Assign</button>
+              <button type="button" (click)="showAssign.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showAssign.set(true)" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Assign</button>
+          <button type="button" (click)="showAssign.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Assign</button>
         }
       }
       @if (canAttend() && auth.canClassifyOrAssign()) {
         @if (showAttend()) {
-          <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
             <h3 class="text-base font-semibold text-gray-900 mb-3">Start attention</h3>
             <form (ngSubmit)="submitAttend()" class="flex flex-wrap gap-3 items-end">
-              <label class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-gray-700">Observations</span>
-                <input type="text" [(ngModel)]="attendForm.observations" name="observations" class="rounded border border-gray-300 px-3 py-2 text-sm min-w-[200px]" />
-              </label>
-              <button type="submit" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Start attention</button>
-              <button type="button" (click)="showAttend.set(false)" class="px-4 py-2 rounded border border-gray-300 bg-white font-medium hover:bg-gray-50">Cancel</button>
+              <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700">Observations</label>
+                <input type="text" [(ngModel)]="attendForm.observations" name="observations" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5" />
+              </div>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Start attention</button>
+              <button type="button" (click)="showAttend.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showAttend.set(true)" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Start attention</button>
+          <button type="button" (click)="showAttend.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Start attention</button>
         }
       }
       @if (canClose() && auth.canClose()) {
         @if (showClose()) {
-          <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
             <h3 class="text-base font-semibold text-gray-900 mb-3">Close request</h3>
             <form (ngSubmit)="submitClose()" class="flex flex-wrap gap-3 items-end">
-              <label class="flex flex-col gap-1 flex-1 min-w-[280px]">
-                <span class="text-sm font-medium text-gray-700">Closure observation (required)</span>
-                <textarea [(ngModel)]="closeForm.closureObservation" name="closureObservation" rows="3" required class="rounded border border-gray-300 px-3 py-2 text-sm w-full"></textarea>
-              </label>
-              <button type="submit" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Close</button>
-              <button type="button" (click)="showClose.set(false)" class="px-4 py-2 rounded border border-gray-300 bg-white font-medium hover:bg-gray-50">Cancel</button>
+              <div class="flex-1 min-w-[280px]">
+                <label class="block mb-1 text-sm font-medium text-gray-700">Closure observation (required)</label>
+                <textarea [(ngModel)]="closeForm.closureObservation" name="closureObservation" rows="3" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 w-full p-2.5"></textarea>
+              </div>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Close</button>
+              <button type="button" (click)="showClose.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showClose.set(true)" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark">Close request</button>
+          <button type="button" (click)="showClose.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Close request</button>
         }
       }
     </section>
@@ -140,11 +143,11 @@
     <p class="text-gray-500 mb-4">This request is closed. No further actions are available.</p>
   }
 
-  <section class="mb-6 p-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <section class="mb-6 p-6 bg-white border border-gray-200 rounded-lg shadow">
     <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">History</h2>
-    <ul class="list-none p-0 m-0">
+    <ul class="list-none p-0 m-0 divide-y divide-gray-200">
       @for (h of history(); track h.id) {
-        <li class="py-2 border-b border-gray-100 flex flex-wrap gap-2">
+        <li class="py-3 flex flex-wrap gap-2">
           <span class="text-gray-500 text-sm">{{ h.occurredAt | date:'short' }}</span>
           <span class="font-semibold text-gray-900">{{ h.action }}</span>
           <span class="text-gray-700">{{ h.userName ?? h.userIdentifier ?? h.userId }}</span>

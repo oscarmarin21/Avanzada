@@ -1,45 +1,52 @@
-<a routerLink="/" class="text-primary font-medium hover:underline mb-4 inline-block">← Back to list</a>
+<a routerLink="/" class="inline-flex items-center gap-1 font-medium text-primary hover:underline mb-6">← Back to list</a>
 
-<h1 class="text-2xl font-semibold text-gray-900 mb-4">New request</h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">New request</h1>
 
 @if (error()) {
-  <p class="text-red-600 mb-2">{{ error() }}</p>
+  <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ error() }}</div>
 }
 
-<form (ngSubmit)="submit()" class="flex flex-col gap-4 max-w-md">
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Description (required)</span>
-    <textarea [(ngModel)]="form.description" name="description" rows="4" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border"></textarea>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Request type (required)</span>
-    <select [(ngModel)]="form.requestTypeId" name="requestTypeId" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
+<form (ngSubmit)="submit()" class="max-w-md space-y-4 p-6 bg-white border border-gray-200 rounded-lg shadow">
+  <div>
+    <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Description (required)</label>
+    <textarea id="description" [(ngModel)]="form.description" name="description" rows="4" required
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
+  </div>
+  <div>
+    <label for="requestTypeId" class="block mb-2 text-sm font-medium text-gray-900">Request type (required)</label>
+    <select id="requestTypeId" [(ngModel)]="form.requestTypeId" name="requestTypeId" required
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
       <option [value]="0">Select type</option>
       @for (rt of requestTypes(); track rt.id) {
         <option [value]="rt.id">{{ rt.name }}</option>
       }
     </select>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Channel (required)</span>
-    <select [(ngModel)]="form.channelId" name="channelId" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
+  </div>
+  <div>
+    <label for="channelId" class="block mb-2 text-sm font-medium text-gray-900">Channel (required)</label>
+    <select id="channelId" [(ngModel)]="form.channelId" name="channelId" required
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
       <option [value]="0">Select channel</option>
       @for (c of channels(); track c.id) {
         <option [value]="c.id">{{ c.name }}</option>
       }
     </select>
-  </label>
-  <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-gray-700">Requested by (required)</span>
-    <select [(ngModel)]="form.requestedById" name="requestedById" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
+  </div>
+  <div>
+    <label for="requestedById" class="block mb-2 text-sm font-medium text-gray-900">Requested by (required)</label>
+    <select id="requestedById" [(ngModel)]="form.requestedById" name="requestedById" required
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
       <option [value]="0">Select user</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
       }
     </select>
-  </label>
+  </div>
   <div class="flex gap-3 items-center">
-    <button type="submit" [disabled]="submitting()" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark disabled:opacity-50">{{ submitting() ? 'Creating…' : 'Create request' }}</button>
-    <a routerLink="/" class="text-primary font-medium hover:underline">Cancel</a>
+    <button type="submit" [disabled]="submitting()"
+      class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed">
+      {{ submitting() ? 'Creating…' : 'Create request' }}
+    </button>
+    <a routerLink="/" class="font-medium text-primary hover:underline">Cancel</a>
   </div>
 </form>

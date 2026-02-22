@@ -42,3 +42,13 @@ spring:
     url: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE:avanzada}
     username: ${MARIADB_USER:avanzada}
     password: ${MARIADB_PASSWORD:avanzada}
+
+# Use with docker + reset to drop and recreate schema, then run --init-data (full DB reset).
+---
+spring:
+  config:
+    activate:
+      on-profile: reset
+  jpa:
+    hibernate:
+      ddl-auto: create
