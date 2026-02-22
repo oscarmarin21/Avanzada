@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { RequestApiService } from '../../services/request-api.service';
+import { AuthService } from '../../services/auth.service';
 import {
   RequestResponse,
   HistoryEntryDto,
@@ -15,13 +16,13 @@ import {
   selector: 'app-request-detail',
   standalone: true,
   imports: [RouterLink, FormsModule, DatePipe],
-  templateUrl: './request-detail.component.html',
-  styleUrl: './request-detail.component.css'
+  templateUrl: './request-detail.component.html'
 })
 export class RequestDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(RequestApiService);
+  readonly auth = inject(AuthService);
 
   request = signal<RequestResponse | null>(null);
   history = signal<HistoryEntryDto[]>([]);

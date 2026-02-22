@@ -8,8 +8,7 @@ import { RequestTypeDto, ChannelDto, UserDto } from '../../models/request.model'
   selector: 'app-request-create',
   standalone: true,
   imports: [RouterLink, FormsModule],
-  templateUrl: './request-create.component.html',
-  styleUrl: './request-create.component.css'
+  templateUrl: './request-create.component.html'
 })
 export class RequestCreateComponent implements OnInit {
   private router = inject(Router);

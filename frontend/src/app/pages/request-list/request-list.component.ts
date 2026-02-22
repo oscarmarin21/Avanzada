@@ -11,8 +11,7 @@ const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
   selector: 'app-request-list',
   standalone: true,
   imports: [RouterLink, FormsModule, DatePipe],
-  templateUrl: './request-list.component.html',
-  styleUrl: './request-list.component.css'
+  templateUrl: './request-list.component.html'
 })
 export class RequestListComponent implements OnInit {
   private api = inject(RequestApiService);

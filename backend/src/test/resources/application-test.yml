@@ -9,3 +9,9 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
+
+# JWT: 32+ bytes required for HS256 (tests only)
+app:
+  jwt:
+    secret: test-secret-at-least-32-bytes-long-for-hs256
+    expiration-seconds: 3600

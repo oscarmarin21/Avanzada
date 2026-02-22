@@ -8,11 +8,14 @@ import com.avanzada.repository.HistoryEntryRepository;
 import com.avanzada.repository.RequestRepository;
 import com.avanzada.repository.StateRepository;
 import com.avanzada.service.AiService;
+import com.avanzada.security.AppUserDetails;
 import com.avanzada.service.RequestLifecycleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -32,8 +35,13 @@ public class RequestController {
     private final RequestMapper mapper;
     private final AiService aiService;
 
-    private static final String HEADER_USER_ID = "X-User-Id";
+    private static Long currentUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof AppUserDetails details)) return null;
+        return details.userId();
+    }
 
+    @PreAuthorize("hasAnyRole('STUDENT','STAFF','ADMIN')")
     @PostMapping("/requests")
     public ResponseEntity<RequestResponseDto> createRequest(@Valid @RequestBody CreateRequestDto dto) {
         Instant registeredAt = parseInstant(dto.getRegisteredAt());
@@ -75,44 +83,48 @@ public class RequestController {
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     @PostMapping("/requests/{id}/classify")
     public ResponseEntity<RequestResponseDto> classify(
             @PathVariable Long id,
-            @Valid @RequestBody ClassifyRequestDto dto,
-            @RequestHeader(value = HEADER_USER_ID, required = false) Long headerUserId) {
+            @Valid @RequestBody ClassifyRequestDto dto) {
         Priority priority = parsePriority(dto.getPriority());
-        Long userId = headerUserId != null ? headerUserId : lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
+        Long userId = currentUserId();
+        if (userId == null) userId = lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
         Request request = lifecycleService.classify(id, dto.getRequestTypeId(), priority, dto.getPriorityJustification(), userId);
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     @PostMapping("/requests/{id}/assign")
     public ResponseEntity<RequestResponseDto> assign(
             @PathVariable Long id,
-            @Valid @RequestBody AssignRequestDto dto,
-            @RequestHeader(value = HEADER_USER_ID, required = false) Long headerUserId) {
-        Long userId = headerUserId != null ? headerUserId : lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
+            @Valid @RequestBody AssignRequestDto dto) {
+        Long userId = currentUserId();
+        if (userId == null) userId = lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
         Request request = lifecycleService.assign(id, dto.getAssignedToId(), userId);
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     @PostMapping("/requests/{id}/attend")
     public ResponseEntity<RequestResponseDto> attend(
             @PathVariable Long id,
-            @RequestBody(required = false) AttendRequestDto dto,
-            @RequestHeader(value = HEADER_USER_ID, required = false) Long headerUserId) {
-        Long userId = headerUserId != null ? headerUserId : lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
+            @RequestBody(required = false) AttendRequestDto dto) {
+        Long userId = currentUserId();
+        if (userId == null) userId = lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
         String observations = dto != null ? dto.getObservations() : null;
         Request request = lifecycleService.attend(id, userId, observations);
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/requests/{id}/close")
     public ResponseEntity<RequestResponseDto> close(
             @PathVariable Long id,
-            @Valid @RequestBody CloseRequestDto dto,
-            @RequestHeader(value = HEADER_USER_ID, required = false) Long headerUserId) {
-        Long userId = headerUserId != null ? headerUserId : lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
+            @Valid @RequestBody CloseRequestDto dto) {
+        Long userId = currentUserId();
+        if (userId == null) userId = lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
         Request request = lifecycleService.close(id, dto.getClosureObservation(), userId);
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }

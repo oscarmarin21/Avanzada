@@ -1,41 +1,45 @@
-<a routerLink="/">← Back to list</a>
+<a routerLink="/" class="text-primary font-medium hover:underline mb-4 inline-block">← Back to list</a>
 
-<h1>New request</h1>
+<h1 class="text-2xl font-semibold text-gray-900 mb-4">New request</h1>
 
 @if (error()) {
-  <p class="error">{{ error() }}</p>
+  <p class="text-red-600 mb-2">{{ error() }}</p>
 }
 
-<form (ngSubmit)="submit()" class="form">
-  <label>Description (required)
-    <textarea [(ngModel)]="form.description" name="description" rows="4" required></textarea>
+<form (ngSubmit)="submit()" class="flex flex-col gap-4 max-w-md">
+  <label class="flex flex-col gap-1">
+    <span class="text-sm font-medium text-gray-700">Description (required)</span>
+    <textarea [(ngModel)]="form.description" name="description" rows="4" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border"></textarea>
   </label>
-  <label>Request type (required)
-    <select [(ngModel)]="form.requestTypeId" name="requestTypeId" required>
+  <label class="flex flex-col gap-1">
+    <span class="text-sm font-medium text-gray-700">Request type (required)</span>
+    <select [(ngModel)]="form.requestTypeId" name="requestTypeId" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
       <option [value]="0">Select type</option>
       @for (rt of requestTypes(); track rt.id) {
         <option [value]="rt.id">{{ rt.name }}</option>
       }
     </select>
   </label>
-  <label>Channel (required)
-    <select [(ngModel)]="form.channelId" name="channelId" required>
+  <label class="flex flex-col gap-1">
+    <span class="text-sm font-medium text-gray-700">Channel (required)</span>
+    <select [(ngModel)]="form.channelId" name="channelId" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
       <option [value]="0">Select channel</option>
       @for (c of channels(); track c.id) {
         <option [value]="c.id">{{ c.name }}</option>
       }
     </select>
   </label>
-  <label>Requested by (required)
-    <select [(ngModel)]="form.requestedById" name="requestedById" required>
+  <label class="flex flex-col gap-1">
+    <span class="text-sm font-medium text-gray-700">Requested by (required)</span>
+    <select [(ngModel)]="form.requestedById" name="requestedById" required class="w-full rounded border border-gray-300 px-3 py-2 text-sm box-border">
       <option [value]="0">Select user</option>
       @for (u of users(); track u.id) {
         <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
       }
     </select>
   </label>
-  <div class="buttons">
-    <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Creating…' : 'Create request' }}</button>
-    <a routerLink="/" class="btn-link">Cancel</a>
+  <div class="flex gap-3 items-center">
+    <button type="submit" [disabled]="submitting()" class="px-4 py-2 rounded bg-primary text-white font-medium hover:bg-primary-dark disabled:opacity-50">{{ submitting() ? 'Creating…' : 'Create request' }}</button>
+    <a routerLink="/" class="text-primary font-medium hover:underline">Cancel</a>
   </div>
 </form>

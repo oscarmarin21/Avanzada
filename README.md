@@ -72,7 +72,16 @@ npm ci
 npm start
 ```
 
-Served at http://localhost:4000. The proxy forwards `/api` to `http://localhost:9000`, so the backend must be running for API calls.
+Served at http://localhost:4000. The proxy forwards `/api` to `http://localhost:9000`, so the backend must be running for API calls. You must **log in** (e.g. at http://localhost:4000/login) before using the app; the backend requires a valid JWT for all API calls except login and health.
+
+### Authentication and roles
+
+- **Login**: `POST /api/auth/login` with `{ "identifier": "...", "password": "..." }`. Returns a JWT and user info (id, identifier, name, role).
+- **Roles** (RF-13):
+  - **STUDENT**: Can register new requests and view data. Cannot classify, assign, attend, or close.
+  - **STAFF**: Can register, classify, assign, and attend requests. Cannot close.
+  - **ADMIN**: Full access including closing requests.
+- If no user in the database has a password set, the backend sets the first user’s password to `admin123` and role to ADMIN on startup (see `DevAuthBootstrap`). Use that user’s identifier and `admin123` to log in. In production, set user passwords explicitly (e.g. via DB or future admin API) and set `JWT_SECRET` (min 32 characters).
 
 ## Optional: AI integration (RF-09, RF-10, RF-11)
 
@@ -104,10 +113,10 @@ Avanzada/
 ├── .vscode/          # tasks.json: Backend/Frontend tasks (optional; may be in .gitignore)
 ├── .cursor/rules/    # Rules for AI assistants (Java, Angular, Docker)
 ├── backend/          # Spring Boot 3, Java 21, JPA, MariaDB
-├── frontend/         # Angular 18, standalone
+├── frontend/         # Angular 18, standalone; styling is Tailwind CSS only (see frontend/DESIGN.md)
 ├── docker-compose.yml
 ├── AGENTS.md         # Instructions for AI assistants
 └── README.md
 ```
 
-For more detail (package structure, conventions, validation) see **AGENTS.md** in the project root.
+For more detail (package structure, conventions, validation) see **AGENTS.md** in the project root. For frontend styling and design patterns see **frontend/DESIGN.md**.

@@ -25,6 +25,11 @@ public class User {
     @Column(nullable = false)
     private Boolean active;
 
+    /** Role for authorization: STUDENT, STAFF, ADMIN. */
     @Column(length = 50)
     private String role;
+
+    /** BCrypt hash of password; null if user cannot login (e.g. legacy user). */
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
 }

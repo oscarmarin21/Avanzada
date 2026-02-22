@@ -17,15 +17,19 @@ Avanzada/
 ├── backend/                 # Java Spring Boot 3.x (Java 21)
 │   ├── src/main/java/com/avanzada/
 │   │   ├── AvanzadaApplication.java
-│   │   ├── controller/       # @RestController
-│   │   ├── entity/           # JPA entities
-│   │   └── repository/      # JPA repositories
+│   │   ├── config/           # SecurityConfig, JwtUtil, JwtProperties
+│   │   ├── controller/      # @RestController (incl. AuthController)
+│   │   ├── entity/          # JPA entities
+│   │   ├── repository/      # JPA repositories
+│   │   └── security/        # JWT filter, UserDetails
 │   ├── src/main/resources/
 │   │   └── application.yml  # Profiles: default (local), docker
 │   ├── pom.xml
 │   └── Dockerfile
-├── frontend/                # Angular 18, standalone components
+├── frontend/                # Angular 18, standalone components, Tailwind CSS only
 │   ├── src/app/             # Components, routes, config
+│   ├── tailwind.config.js   # Theme (colors, etc.) and content paths
+│   ├── DESIGN.md            # Design system and Tailwind patterns
 │   ├── angular.json         # serve port 4000, proxy to backend
 │   ├── proxy.conf.json      # /api -> http://localhost:9000 (dev)
 │   ├── nginx.conf           # /api/ -> backend:9000 (Docker)
@@ -74,6 +78,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
 - **Frontend (Angular)**  
   - Project: `frontend`, component prefix `app`.  
   - Angular 18 with standalone components.  
+  - **Styling**: Tailwind CSS only. No component or global CSS files; use Tailwind utility classes. Theme and patterns are in `tailwind.config.js` and documented in `frontend/DESIGN.md`. Do not add `styleUrl` or new `.css` files.  
   - API calls: use relative path `/api/...` so that in dev (proxy) and Docker (nginx) they target the backend.  
   - Serve/proxy config: `angular.json` (port 4000) and `proxy.conf.json`.  
   - See `.cursor/rules/` for Angular/TypeScript patterns.
@@ -84,6 +89,17 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
   - Frontend: build with Node, run with nginx on port 80 (mapped 4000:80).  
   - Backend env vars in compose: `SPRING_PROFILES_ACTIVE`, `MARIADB_*` (DB, user, password).  
   - See `.cursor/rules/` for Dockerfile and compose.
+
+## Security and roles (RF-13)
+
+- **Authentication**: JWT. Login via `POST /api/auth/login` with body `{ "identifier": "...", "password": "..." }`. Response includes `token` and `user` (id, identifier, name, role). All other `/api/**` endpoints require `Authorization: Bearer <token>`. Public: `/health`, `POST /api/auth/login`.
+- **Roles** (stored in `app_user.role`, included in JWT):
+  - **STUDENT**: Register requests (POST /api/requests); view list, detail, catalogs. Cannot classify, assign, attend, or close.
+  - **STAFF**: Register requests; classify, assign, attend (lifecycle except close). Cannot close requests.
+  - **ADMIN**: Full access including close (POST /api/requests/{id}/close).
+- **Backend**: `@PreAuthorize` on `RequestController` (e.g. `hasRole('ADMIN')` for close, `hasAnyRole('STAFF','ADMIN')` for classify/assign/attend, `hasAnyRole('STUDENT','STAFF','ADMIN')` for create). User id for audit comes from JWT (SecurityContext), not headers.
+- **Frontend**: `AuthService` (login, logout, token in sessionStorage); HTTP interceptor adds Bearer token; auth guard redirects unauthenticated users to `/login`. UI hides or disables actions by role (e.g. Close only for ADMIN, New request only when `canRegister()`).
+- **Config**: `app.jwt.secret` (min 32 bytes for HS256), `app.jwt.expiration-seconds`. In production set `JWT_SECRET` env var. If no user has a password set, dev bootstrap sets the first user’s password to `admin123` and role to ADMIN (see `DevAuthBootstrap`).
 
 ## Validation and testing
 
