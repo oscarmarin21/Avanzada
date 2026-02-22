@@ -1,0 +1,156 @@
+<a routerLink="/">← Back to list</a>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  @if (request(); as reqRef) {
+  <h1>Request #{{ reqRef.id }}</h1>
+
+  @if (actionError()) {
+    <p class="error">{{ actionError() }}</p>
+  }
+
+  <section class="card">
+    <h2>Details</h2>
+    <dl>
+      <dt>Description</dt>
+      <dd>{{ reqRef.description }}</dd>
+      <dt>Type</dt>
+      <dd>{{ reqRef.requestTypeName ?? reqRef.requestTypeCode ?? reqRef.requestTypeId }}</dd>
+      <dt>Channel</dt>
+      <dd>{{ reqRef.channelName ?? reqRef.channelCode ?? reqRef.channelId }}</dd>
+      <dt>State</dt>
+      <dd>{{ reqRef.stateName ?? reqRef.stateCode ?? reqRef.stateId }}</dd>
+      @if (reqRef.priority) {
+        <dt>Priority</dt>
+        <dd>{{ reqRef.priority }}</dd>
+      }
+      @if (reqRef.priorityJustification) {
+        <dt>Priority justification</dt>
+        <dd>{{ reqRef.priorityJustification }}</dd>
+      }
+      <dt>Requested by</dt>
+      <dd>{{ reqRef.requestedByName ?? reqRef.requestedByIdentifier ?? reqRef.requestedById }}</dd>
+      <dt>Assigned to</dt>
+      <dd>{{ reqRef.assignedToName ?? reqRef.assignedToIdentifier ?? '—' }}</dd>
+      <dt>Registered at</dt>
+      <dd>{{ reqRef.registeredAt | date:'medium' }}</dd>
+      @if (reqRef.closureObservation) {
+        <dt>Closure observation</dt>
+        <dd>{{ reqRef.closureObservation }}</dd>
+      }
+    </dl>
+  </section>
+
+  @if (!isClosed()) {
+    <section class="actions">
+      @if (canClassify()) {
+        @if (showClassify()) {
+          <div class="form-card">
+            <h3>Classify</h3>
+            <form (ngSubmit)="submitClassify()">
+              <label>Type
+                <select [(ngModel)]="classifyForm.requestTypeId" name="requestTypeId" required>
+                  @for (rt of requestTypes(); track rt.id) {
+                    <option [value]="rt.id">{{ rt.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>Priority
+                <select [(ngModel)]="classifyForm.priority" name="priority">
+                  <option value="LOW">LOW</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="HIGH">HIGH</option>
+                </select>
+              </label>
+              <label>Justification
+                <input type="text" [(ngModel)]="classifyForm.priorityJustification" name="priorityJustification" />
+              </label>
+              <button type="submit">Classify</button>
+              <button type="button" (click)="showClassify.set(false)">Cancel</button>
+            </form>
+          </div>
+        } @else {
+          <button type="button" (click)="showClassify.set(true)">Classify</button>
+        }
+      }
+      @if (canAssign()) {
+        @if (showAssign()) {
+          <div class="form-card">
+            <h3>Assign</h3>
+            <form (ngSubmit)="submitAssign()">
+              <label>Assigned to
+                <select [(ngModel)]="assignForm.assignedToId" name="assignedToId" required>
+                  <option [value]="0">Select user</option>
+                  @for (u of users(); track u.id) {
+                    <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
+                  }
+                </select>
+              </label>
+              <button type="submit">Assign</button>
+              <button type="button" (click)="showAssign.set(false)">Cancel</button>
+            </form>
+          </div>
+        } @else {
+          <button type="button" (click)="showAssign.set(true)">Assign</button>
+        }
+      }
+      @if (canAttend()) {
+        @if (showAttend()) {
+          <div class="form-card">
+            <h3>Start attention</h3>
+            <form (ngSubmit)="submitAttend()">
+              <label>Observations
+                <input type="text" [(ngModel)]="attendForm.observations" name="observations" />
+              </label>
+              <button type="submit">Start attention</button>
+              <button type="button" (click)="showAttend.set(false)">Cancel</button>
+            </form>
+          </div>
+        } @else {
+          <button type="button" (click)="showAttend.set(true)">Start attention</button>
+        }
+      }
+      @if (canClose()) {
+        @if (showClose()) {
+          <div class="form-card">
+            <h3>Close request</h3>
+            <form (ngSubmit)="submitClose()">
+              <label>Closure observation (required)
+                <textarea [(ngModel)]="closeForm.closureObservation" name="closureObservation" rows="3" required></textarea>
+              </label>
+              <button type="submit">Close</button>
+              <button type="button" (click)="showClose.set(false)">Cancel</button>
+            </form>
+          </div>
+        } @else {
+          <button type="button" (click)="showClose.set(true)">Close request</button>
+        }
+      }
+    </section>
+  } @else {
+    <p class="muted">This request is closed. No further actions are available.</p>
+  }
+
+  <section class="card">
+    <h2>History</h2>
+    <ul class="history">
+      @for (h of history(); track h.id) {
+        <li>
+          <span class="date">{{ h.occurredAt | date:'short' }}</span>
+          <span class="action">{{ h.action }}</span>
+          <span class="user">{{ h.userName ?? h.userIdentifier ?? h.userId }}</span>
+          @if (h.observations) {
+            <span class="obs">— {{ h.observations }}</span>
+          }
+        </li>
+      }
+    </ul>
+    @if (history().length === 0) {
+      <p>No history entries.</p>
+    }
+  </section>
+  }
+}

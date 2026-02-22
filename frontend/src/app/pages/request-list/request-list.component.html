@@ -1,0 +1,76 @@
+<h1>Requests</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+<div class="filters">
+  <label>State
+    <select [ngModel]="filterState()" (ngModelChange)="filterState.set($event)">
+      <option value="">All</option>
+      @for (s of states(); track s.id) {
+        <option [value]="s.code">{{ s.name }}</option>
+      }
+    </select>
+  </label>
+  <label>Type
+    <select [ngModel]="filterRequestType()" (ngModelChange)="filterRequestType.set($event)">
+      <option value="">All</option>
+      @for (rt of requestTypes(); track rt.id) {
+        <option [value]="rt.id">{{ rt.name }}</option>
+      }
+    </select>
+  </label>
+  <label>Priority
+    <select [ngModel]="filterPriority()" (ngModelChange)="filterPriority.set($event)">
+      <option value="">All</option>
+      @for (p of priorities; track p) {
+        <option [value]="p">{{ p }}</option>
+      }
+    </select>
+  </label>
+  <label>Assigned to
+    <select [ngModel]="filterAssignedTo()" (ngModelChange)="filterAssignedTo.set($event)">
+      <option value="">All</option>
+      @for (u of users(); track u.id) {
+        <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
+      }
+    </select>
+  </label>
+  <button type="button" (click)="applyFilters()">Apply</button>
+  <button type="button" (click)="clearFilters()">Clear</button>
+</div>
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else {
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Type</th>
+        <th>State</th>
+        <th>Priority</th>
+        <th>Assigned to</th>
+        <th>Registered</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (r of requests(); track r.id) {
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.requestTypeName ?? r.requestTypeCode ?? r.requestTypeId }}</td>
+          <td>{{ r.stateName ?? r.stateCode ?? r.stateId }}</td>
+          <td>{{ r.priority ?? '—' }}</td>
+          <td>{{ r.assignedToName ?? r.assignedToIdentifier ?? '—' }}</td>
+          <td>{{ r.registeredAt | date:'short' }}</td>
+          <td><a [routerLink]="['/requests', r.id]">View</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  @if (requests().length === 0) {
+    <p>No requests found.</p>
+  }
+}

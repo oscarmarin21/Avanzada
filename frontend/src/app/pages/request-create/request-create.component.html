@@ -1,0 +1,41 @@
+<a routerLink="/">← Back to list</a>
+
+<h1>New request</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+<form (ngSubmit)="submit()" class="form">
+  <label>Description (required)
+    <textarea [(ngModel)]="form.description" name="description" rows="4" required></textarea>
+  </label>
+  <label>Request type (required)
+    <select [(ngModel)]="form.requestTypeId" name="requestTypeId" required>
+      <option [value]="0">Select type</option>
+      @for (rt of requestTypes(); track rt.id) {
+        <option [value]="rt.id">{{ rt.name }}</option>
+      }
+    </select>
+  </label>
+  <label>Channel (required)
+    <select [(ngModel)]="form.channelId" name="channelId" required>
+      <option [value]="0">Select channel</option>
+      @for (c of channels(); track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </label>
+  <label>Requested by (required)
+    <select [(ngModel)]="form.requestedById" name="requestedById" required>
+      <option [value]="0">Select user</option>
+      @for (u of users(); track u.id) {
+        <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
+      }
+    </select>
+  </label>
+  <div class="buttons">
+    <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Creating…' : 'Create request' }}</button>
+    <a routerLink="/" class="btn-link">Cancel</a>
+  </div>
+</form>
