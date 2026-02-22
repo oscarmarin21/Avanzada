@@ -1,0 +1,12 @@
+# Test profile: use H2 in-memory for repository tests
+spring:
+  datasource:
+    url: jdbc:h2:mem:avanzada_test;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER_STRATEGY=INSENSITIVE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
