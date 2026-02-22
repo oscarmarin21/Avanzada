@@ -92,7 +92,7 @@ class RequestLifecycleServiceTest {
         assertThat(historyEntries(created.getId())).hasSize(1);
         assertThat(historyEntries(created.getId()).get(0).getAction()).isEqualTo("REGISTERED");
 
-        Request classified = lifecycleService.classify(created.getId(), type.getId(), Priority.HIGH, "Urgent", otherUser.getId());
+        Request classified = lifecycleService.classify(created.getId(), type.getId(), "HIGH", "Urgent", otherUser.getId());
         assertThat(classified.getState().getCode()).isEqualTo("CLASIFICADA");
         assertThat(classified.getPriority()).isEqualTo(Priority.HIGH);
         assertThat(classified.getPriorityJustification()).isEqualTo("Urgent");
@@ -122,9 +122,9 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
         Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
-        lifecycleService.classify(created.getId(), type.getId(), Priority.MEDIUM, null, otherUser.getId());
+        lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
 
-        assertThatThrownBy(() -> lifecycleService.classify(created.getId(), type.getId(), Priority.LOW, null, otherUser.getId()))
+        assertThatThrownBy(() -> lifecycleService.classify(created.getId(), type.getId(), "LOW", null, otherUser.getId()))
                 .isInstanceOf(InvalidStateTransitionException.class)
                 .hasMessageContaining("expected REGISTRADA");
     }
@@ -136,7 +136,7 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
         Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
-        lifecycleService.classify(created.getId(), type.getId(), Priority.MEDIUM, null, otherUser.getId());
+        lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
 
         assertThatThrownBy(() -> lifecycleService.assign(created.getId(), inactive.getId(), otherUser.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -148,7 +148,7 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
         Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
-        lifecycleService.classify(created.getId(), type.getId(), Priority.MEDIUM, null, otherUser.getId());
+        lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
         lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
         lifecycleService.attend(created.getId(), assignee.getId(), null);
 
@@ -175,7 +175,7 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
         Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
-        lifecycleService.classify(created.getId(), type.getId(), Priority.MEDIUM, null, otherUser.getId());
+        lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
         lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
         lifecycleService.attend(created.getId(), assignee.getId(), null);
         lifecycleService.close(created.getId(), "Done", otherUser.getId());

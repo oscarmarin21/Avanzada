@@ -2,13 +2,9 @@ package com.avanzada.controller;
 
 import com.avanzada.dto.RequestMapper;
 import com.avanzada.dto.*;
-import com.avanzada.entity.Priority;
 import com.avanzada.entity.Request;
-import com.avanzada.repository.HistoryEntryRepository;
-import com.avanzada.repository.RequestRepository;
-import com.avanzada.repository.StateRepository;
-import com.avanzada.service.AiService;
 import com.avanzada.security.AppUserDetails;
+import com.avanzada.service.AiService;
 import com.avanzada.service.RequestLifecycleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,9 +23,6 @@ import java.util.stream.Collectors;
 public class RequestController {
 
     private final RequestLifecycleService lifecycleService;
-    private final RequestRepository requestRepository;
-    private final StateRepository stateRepository;
-    private final HistoryEntryRepository historyEntryRepository;
     private final RequestMapper mapper;
     private final AiService aiService;
 
@@ -44,13 +35,12 @@ public class RequestController {
     @PreAuthorize("hasAnyRole('STUDENT','STAFF','ADMIN')")
     @PostMapping("/requests")
     public ResponseEntity<RequestResponseDto> createRequest(@Valid @RequestBody CreateRequestDto dto) {
-        Instant registeredAt = parseInstant(dto.getRegisteredAt());
         Request request = lifecycleService.createRequest(
                 dto.getDescription(),
                 dto.getRequestTypeId(),
                 dto.getChannelId(),
                 dto.getRequestedById(),
-                registeredAt);
+                dto.getRegisteredAt());
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toRequestResponseDto(request));
     }
 
@@ -60,19 +50,7 @@ public class RequestController {
             @RequestParam(required = false) Long requestType,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) Long assignedTo) {
-        Long stateId = null;
-        if (state != null && !state.isBlank()) {
-            stateId = stateRepository.findByCode(state.trim()).map(s -> s.getId()).orElse(null);
-        }
-        Priority priorityEnum = null;
-        if (priority != null && !priority.isBlank()) {
-            try {
-                priorityEnum = Priority.valueOf(priority.trim().toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                // invalid priority -> no filter
-            }
-        }
-        List<Request> list = requestRepository.findByFilters(stateId, requestType, priorityEnum, assignedTo);
+        List<Request> list = lifecycleService.listByFilters(state, requestType, priority, assignedTo);
         List<RequestResponseDto> body = list.stream().map(mapper::toRequestResponseDto).collect(Collectors.toList());
         return ResponseEntity.ok(body);
     }
@@ -88,10 +66,9 @@ public class RequestController {
     public ResponseEntity<RequestResponseDto> classify(
             @PathVariable Long id,
             @Valid @RequestBody ClassifyRequestDto dto) {
-        Priority priority = parsePriority(dto.getPriority());
         Long userId = currentUserId();
         if (userId == null) userId = lifecycleService.findRequestOrThrow(id).getRequestedBy().getId();
-        Request request = lifecycleService.classify(id, dto.getRequestTypeId(), priority, dto.getPriorityJustification(), userId);
+        Request request = lifecycleService.classify(id, dto.getRequestTypeId(), dto.getPriority(), dto.getPriorityJustification(), userId);
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
@@ -131,8 +108,7 @@ public class RequestController {
 
     @GetMapping("/requests/{id}/history")
     public ResponseEntity<List<HistoryEntryDto>> getHistory(@PathVariable Long id) {
-        lifecycleService.findRequestOrThrow(id); // 404 if not found
-        List<HistoryEntryDto> body = historyEntryRepository.findByRequest_IdOrderByOccurredAtDesc(id).stream()
+        List<HistoryEntryDto> body = lifecycleService.listHistory(id).stream()
                 .map(mapper::toHistoryEntryDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(body);
@@ -146,25 +122,5 @@ public class RequestController {
         Request request = lifecycleService.findRequestOrThrow(id);
         SummaryResponseDto body = aiService.generateSummary(request);
         return ResponseEntity.ok(body);
-    }
-
-    private static Instant parseInstant(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return Instant.parse(value);
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid date format: " + value);
-        }
-    }
-
-    private static Priority parsePriority(String value) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("priority is required");
-        }
-        try {
-            return Priority.valueOf(value.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid priority: " + value + ". Must be LOW, MEDIUM, or HIGH");
-        }
     }
 }
