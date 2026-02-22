@@ -1,4 +1,3 @@
-# Test profile: use H2 in-memory for repository tests
 spring:
   datasource:
     url: jdbc:h2:mem:avanzada_test;DB_CLOSE_DELAY=-1;MODE=MySQL
