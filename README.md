@@ -53,6 +53,15 @@ docker compose up mariadb -d
 
 Connection: host `localhost`, port `3307`, database `avanzada`, user `avanzada`, password `avanzada` (as in `docker-compose.yml`).
 
+**Initialize reference data and admin user:** with MariaDB running, run the backend once with the `--init-data` argument. It will create states, channels, request types, and an admin user (identifier `admin`, password `admin123`), then exit:
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.arguments=--init-data
+```
+
+After that, start the backend normally (`mvn spring-boot:run`) and log in at http://localhost:4000/login with `admin` / `admin123`. The command is idempotent: you can run it again without duplicating data.
+
 ### Backend
 
 With MariaDB running (Docker or local on 3307):

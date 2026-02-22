@@ -21,13 +21,11 @@ server:
   port: 9000
 
 # JWT (use env JWT_SECRET in production; must be at least 256 bits for HS256)
+# Optional IA integration (RF-09, RF-10, RF-11). When disabled or misconfigured, AI endpoints return fallbacks.
 app:
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-change-in-production-must-be-long-enough-for-hs256}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
-
-# Optional IA integration (RF-09, RF-10, RF-11). When disabled or misconfigured, AI endpoints return fallbacks.
-app:
   ai:
     enabled: false
     api-key: ${OPENAI_API_KEY:}

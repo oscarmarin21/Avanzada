@@ -61,7 +61,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
   - `docker compose build`
   - `docker compose up` (or `docker compose up -d`)
   - Frontend: http://localhost:4000 — Backend: http://localhost:9000 — Health: http://localhost:9000/health
-- **Local backend**: default profile in `application.yml` (DB at `localhost:3307`). Ensure MariaDB is up (e.g. `docker compose up mariadb -d`) and run the Spring Boot app (IDE or `mvn spring-boot:run`).
+- **Local backend**: default profile in `application.yml` (DB at `localhost:3307`). Ensure MariaDB is up (e.g. `docker compose up mariadb -d`) and run the Spring Boot app (IDE or `mvn spring-boot:run`). To seed reference data and an admin user (identifier `admin`, password `admin123`), run once: `mvn spring-boot:run -Dspring-boot.run.arguments=--init-data`; the process will init and exit.
 - **Local frontend**: `cd frontend && npm ci && npm start` (port 4000, proxy `/api` → `http://localhost:9000`).
 - **Dev Containers**: with the Dev Containers extension, open the repo in container; `.devcontainer/` includes the `dev` service with Java 21, Maven, Node and Angular CLI. Ports 9000, 4000 and 3307 are forwarded to the host. Optionally, `.vscode/tasks.json` defines "Backend: Spring Boot" and "Frontend: Angular" tasks that can run on folder open (runOn: folderOpen).
 
