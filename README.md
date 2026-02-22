@@ -74,6 +74,28 @@ npm start
 
 Served at http://localhost:4000. The proxy forwards `/api` to `http://localhost:9000`, so the backend must be running for API calls.
 
+## Optional: AI integration (RF-09, RF-10, RF-11)
+
+The backend can optionally call an OpenAI-compatible LLM for:
+
+- **Request summary** – `GET /api/requests/{id}/summary`: textual summary of the request and its history.
+- **Type/priority suggestion** – `POST /api/ai/suggest` with `{ "description": "..." }`: suggests request type code and priority from the description. The client must confirm or adjust before applying; suggestions are never auto-applied.
+
+**Configuration** (in `backend/src/main/resources/application.yml` and/or environment variables):
+
+| Property / Env var       | Default                          | Description |
+|--------------------------|-----------------------------------|-------------|
+| `app.ai.enabled`         | `false`                           | Set to `true` to allow AI calls. |
+| `OPENAI_API_KEY`         | (empty)                           | API key for the LLM provider. |
+| `OPENAI_API_URL`         | `https://api.openai.com/v1/chat/completions` | Endpoint (OpenAI or compatible). |
+| `OPENAI_MODEL`           | `gpt-3.5-turbo`                   | Model name. |
+| `app.ai.timeout-seconds` | `10`                              | Timeout for LLM requests. |
+
+**When IA is disabled or unavailable:**
+
+- Summary: the API returns a non-LLM fallback summary (request id, state, history count).
+- Suggest: the API returns `available: false` and a message; the client can ignore or show the message. Core flows (registration, classification, lifecycle, closure) never depend on AI and work normally.
+
 ## Structure
 
 ```

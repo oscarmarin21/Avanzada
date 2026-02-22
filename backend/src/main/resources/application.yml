@@ -20,6 +20,15 @@ spring:
 server:
   port: 9000
 
+# Optional IA integration (RF-09, RF-10, RF-11). When disabled or misconfigured, AI endpoints return fallbacks.
+app:
+  ai:
+    enabled: false
+    api-key: ${OPENAI_API_KEY:}
+    endpoint: ${OPENAI_API_URL:https://api.openai.com/v1/chat/completions}
+    model: ${OPENAI_MODEL:gpt-3.5-turbo}
+    timeout-seconds: 10
+
 ---
 spring:
   config:

@@ -7,6 +7,7 @@ import com.avanzada.entity.Request;
 import com.avanzada.repository.HistoryEntryRepository;
 import com.avanzada.repository.RequestRepository;
 import com.avanzada.repository.StateRepository;
+import com.avanzada.service.AiService;
 import com.avanzada.service.RequestLifecycleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class RequestController {
     private final StateRepository stateRepository;
     private final HistoryEntryRepository historyEntryRepository;
     private final RequestMapper mapper;
+    private final AiService aiService;
 
     private static final String HEADER_USER_ID = "X-User-Id";
 
@@ -121,6 +123,16 @@ public class RequestController {
         List<HistoryEntryDto> body = historyEntryRepository.findByRequest_IdOrderByOccurredAtDesc(id).stream()
                 .map(mapper::toHistoryEntryDto)
                 .collect(Collectors.toList());
+        return ResponseEntity.ok(body);
+    }
+
+    /**
+     * Optional: get a textual summary of the request and its history (RF-09). Best-effort; returns fallback when IA unavailable.
+     */
+    @GetMapping("/requests/{id}/summary")
+    public ResponseEntity<SummaryResponseDto> getSummary(@PathVariable Long id) {
+        Request request = lifecycleService.findRequestOrThrow(id);
+        SummaryResponseDto body = aiService.generateSummary(request);
         return ResponseEntity.ok(body);
     }
 
