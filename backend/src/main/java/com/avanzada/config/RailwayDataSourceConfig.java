@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 public class RailwayDataSourceConfig {
 
     private static final String MYSQL_PREFIX = "mysql://";
-    private static final String JDBC_MYSQL_PREFIX = "jdbc:mysql://";
+    private static final String JDBC_MARIADB_PREFIX = "jdbc:mariadb://";
 
     @Bean
     public DataSource dataSource(
@@ -27,11 +27,11 @@ public class RailwayDataSourceConfig {
         String jdbcUrl = url;
         boolean urlHadCredentials = false;
         if (url != null && url.startsWith(MYSQL_PREFIX)) {
-            jdbcUrl = JDBC_MYSQL_PREFIX + url.substring(MYSQL_PREFIX.length());
+            jdbcUrl = JDBC_MARIADB_PREFIX + url.substring(MYSQL_PREFIX.length());
             urlHadCredentials = true; // mysql://user:pass@host form has credentials in URL
         }
         if (jdbcUrl == null || jdbcUrl.isBlank()) {
-            jdbcUrl = "jdbc:mysql://localhost:3306/railway";
+            jdbcUrl = "jdbc:mariadb://localhost:3306/railway";
         }
         HikariDataSource ds = new HikariDataSource();
         ds.setJdbcUrl(jdbcUrl);
