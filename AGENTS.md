@@ -70,7 +70,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
 
 - **Backend (Java)**  
   - Base package: `com.avanzada`.  
-  - Config: `backend/src/main/resources/application.yml`. Profile `docker` uses env vars and host `mariadb:3306`.  
+  - Config: `backend/src/main/resources/application.yml`. Profiles: `default` (local), `docker` (compose, host `mariadb:3306`), `railway` (Railway deploy, env `SPRING_DATASOURCE_*` or `DATABASE_URL`).  
   - New endpoints: controllers in `backend/src/main/java/com/avanzada/controller/`.  
   - JPA entities in `entity/`, repositories in `repository/`.  
   - Validation: `spring-boot-starter-validation`; use DTOs and `@Valid` where applicable.  
@@ -103,6 +103,11 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
 - **Frontend**: `AuthService` (login, logout, token in sessionStorage); HTTP interceptor adds Bearer token; auth guard redirects unauthenticated users to `/login`. UI hides or disables actions by role (e.g. Close only for ADMIN, New request only when `canRegister()`).
 - **Config**: `app.jwt.secret` (min 32 bytes for HS256), `app.jwt.expiration-seconds`. In production set `JWT_SECRET` env var. If no user has a password set, dev bootstrap sets the first user’s password to `admin123` and role to ADMIN (see `DevAuthBootstrap`).
 
+## Deployment (Railway + Vercel)
+
+- **Backend (Railway)**: Deploy from repo with root or Dockerfile at `backend/`. Use profile `railway`; set `SPRING_PROFILES_ACTIVE=railway`, `SPRING_DATASOURCE_URL` (JDBC URL from Railway MySQL), `JWT_SECRET`. See README "Deployment (Railway + Vercel)".
+- **Frontend (Vercel)**: Root directory `frontend`. Set env `API_URL` to backend API base (e.g. `https://your-app.railway.app/api`). Build uses `scripts/set-api-url.js` to inject API_URL into `environment.prod.ts`. CORS is enabled on the backend for the frontend origin.
+
 ## Validation and testing
 
 - **Backend**: `cd backend && mvn verify` (includes tests). To only compile: `mvn compile`.
@@ -118,6 +123,6 @@ The monorepo design and ports follow the plan in `.cursor/plans/monorepo_java_an
 1. **Structure**: Backend in `backend/`, frontend in `frontend/`, orchestration at root.  
 2. **Ports**: 9000 backend, 4000 frontend, 3307 MariaDB (host).  
 3. **Config**: Backend by profiles in `application.yml`; in Docker use profile `docker` and host `mariadb`.  
-4. **API from frontend**: Always under `/api/` so proxy (dev) and nginx (Docker) route to the backend.  
+4. **API from frontend**: Dev and Docker use relative `/api/` (proxy/nginx). Production (Vercel) uses `environment.apiUrl` set at build from `API_URL` (e.g. Railway backend + `/api`).  
 5. **Additional rules**: Apply the rules in `.cursor/rules/` according to the file type being edited.  
 6. **Dev Containers**: If the user works inside the dev container, the backend must use profile `docker` (connection to `mariadb:3306`). The tasks in `.vscode/tasks.json` already set `SPRING_PROFILES_ACTIVE=docker` for the backend.

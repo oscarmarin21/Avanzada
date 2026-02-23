@@ -17,8 +17,9 @@ import {
   SuggestResponseDto,
   AiStatusDto
 } from '../models/request.model';
+import { environment } from '../../environments/environment';
 
-const API = '/api';
+const API = environment.apiUrl;
 
 @Injectable({ providedIn: 'root' })
 export class RequestApiService {

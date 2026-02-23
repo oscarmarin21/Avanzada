@@ -144,6 +144,35 @@ The backend can optionally call an OpenAI-compatible LLM for:
 - Summary: the API returns a non-LLM fallback summary (request id, state, history count).
 - Suggest: the API returns `available: false` and a message; the client can ignore or show the message. Core flows (registration, classification, lifecycle, closure) never depend on AI and work normally.
 
+## Deployment (Railway + Vercel)
+
+The backend is intended to be deployed on **[Railway](https://railway.com/)**, and the frontend on **[Vercel](https://vercel.com/)**.
+
+### Backend on Railway
+
+1. Create a new project on Railway and add a **MySQL** (or MariaDB-compatible) database from the catalog.
+2. Add a **service** from this repo: use the **backend** directory as root (or set `RAILWAY_DOCKERFILE_PATH` to `backend/Dockerfile` if deploying from monorepo root).
+3. Set **environment variables**:
+   - `SPRING_PROFILES_ACTIVE` = `railway`
+   - `SPRING_DATASOURCE_URL` = JDBC URL for your MySQL service (e.g. `jdbc:mysql://host:port/db`; build it from the variables Railway provides for the MySQL service, e.g. `MYSQL_URL` is often `mysql://...` — use the same host, user, password, port, and database in `jdbc:mysql://...` form).
+   - `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` = DB user and password (or use the vars from the Railway MySQL plugin).
+   - `JWT_SECRET` = a long random secret (at least 32 characters) for production.
+4. Deploy. Railway will build the Dockerfile and run the JAR. Expose the service and note the public URL (e.g. `https://your-app.railway.app`).
+5. Run data init once (reference data + admin user): use Railway’s **Run Command** or a one-off deploy with `--init-data` and `SPRING_PROFILES_ACTIVE=railway`, or connect to the DB and run the init logic manually. Default admin: identifier `admin`, password `admin123` (change in production).
+
+### Frontend on Vercel
+
+1. Import the repo in Vercel and set the **Root Directory** to `frontend`.
+2. Add **Environment Variable**:
+   - `API_URL` = your Railway backend URL including path to API (e.g. `https://your-app.railway.app/api`). The build script injects this into the Angular app.
+3. Deploy. Vercel uses `vercel.json`: the build runs `node scripts/set-api-url.js && ng build --configuration=production`, which writes the API base URL into the production environment before building.
+
+The backend allows cross-origin requests (CORS) so the browser can call the API from the Vercel origin.
+
+### Docker (local or self-hosted)
+
+For local development or a single-machine deploy, use Docker Compose as described above: `docker compose up` runs MariaDB, backend (profile `docker`), and frontend (nginx proxying `/api/` to the backend). No Railway or Vercel required.
+
 ## Structure
 
 ```

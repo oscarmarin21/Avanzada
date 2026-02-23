@@ -52,3 +52,17 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+
+# Railway (https://railway.com): set SPRING_PROFILES_ACTIVE=railway and add MySQL/MariaDB plugin.
+# Set DATABASE_URL to JDBC URL, e.g. jdbc:mysql://host:port/db (from Railway MySQL vars), or
+# set SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD.
+---
+spring:
+  config:
+    activate:
+      on-profile: railway
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:mariadb://localhost:3306/avanzada}}
+    username: ${SPRING_DATASOURCE_USERNAME:${MYSQL_USER:avanzada}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${MYSQL_PASSWORD:avanzada}}
+    driver-class-name: org.mariadb.jdbc.Driver

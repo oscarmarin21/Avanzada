@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { AuthUser, LoginRequest, LoginResponse, JwtPayload } from '../models/auth.model';
+import { environment } from '../../environments/environment';
 
-const API = '/api';
+const API = environment.apiUrl;
 const TOKEN_KEY = 'avanzada_token';
 const USER_KEY = 'avanzada_user';
 

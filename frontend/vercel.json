@@ -1,0 +1,5 @@
+{
+  "buildCommand": "node scripts/set-api-url.js && ng build --configuration=production",
+  "outputDirectory": "dist/frontend/browser",
+  "framework": null
+}
