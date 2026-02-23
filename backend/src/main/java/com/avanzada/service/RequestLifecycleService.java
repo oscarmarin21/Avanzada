@@ -14,7 +14,7 @@ public interface RequestLifecycleService {
 
     Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt);
 
-    List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo);
+    List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo, Long requestedById);
 
     Request findRequestOrThrow(Long requestId);
 

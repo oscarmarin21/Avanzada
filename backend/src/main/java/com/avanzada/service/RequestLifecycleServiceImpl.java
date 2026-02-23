@@ -62,13 +62,13 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
     }
 
     @Override
-    public List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo) {
+    public List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo, Long requestedById) {
         Long stateId = null;
         if (state != null && !state.isBlank()) {
             stateId = stateRepository.findByCode(state.trim()).map(State::getId).orElse(null);
         }
         Priority priorityEnum = parsePriorityOrNull(priority);
-        return requestRepository.findByFilters(stateId, requestType, priorityEnum, assignedTo);
+        return requestRepository.findByFilters(stateId, requestType, priorityEnum, assignedTo, requestedById);
     }
 
     @Override

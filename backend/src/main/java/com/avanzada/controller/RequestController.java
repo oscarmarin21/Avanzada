@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,14 +33,39 @@ public class RequestController {
         return details.userId();
     }
 
+    /** True if the current user has role STUDENT (they may only see their own requests). */
+    private static boolean isCurrentUserStudent() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_STUDENT"::equals);
+    }
+
+    private static boolean isCurrentUserAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
+    }
+
     @PreAuthorize("hasAnyRole('STUDENT','STAFF','ADMIN')")
     @PostMapping("/requests")
     public ResponseEntity<RequestResponseDto> createRequest(@Valid @RequestBody CreateRequestDto dto) {
+        Long currentId = currentUserId();
+        if (currentId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Long requestedById = currentId;
+        if (isCurrentUserAdmin() && dto.getRequestedById() != null) {
+            requestedById = dto.getRequestedById();
+        }
         Request request = lifecycleService.createRequest(
                 dto.getDescription(),
                 dto.getRequestTypeId(),
                 dto.getChannelId(),
-                dto.getRequestedById(),
+                requestedById,
                 dto.getRegisteredAt());
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toRequestResponseDto(request));
     }
@@ -50,7 +76,8 @@ public class RequestController {
             @RequestParam(required = false) Long requestType,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) Long assignedTo) {
-        List<Request> list = lifecycleService.listByFilters(state, requestType, priority, assignedTo);
+        Long requestedById = isCurrentUserStudent() ? currentUserId() : null;
+        List<Request> list = lifecycleService.listByFilters(state, requestType, priority, assignedTo, requestedById);
         List<RequestResponseDto> body = list.stream().map(mapper::toRequestResponseDto).collect(Collectors.toList());
         return ResponseEntity.ok(body);
     }
@@ -58,6 +85,9 @@ public class RequestController {
     @GetMapping("/requests/{id}")
     public ResponseEntity<RequestResponseDto> getRequest(@PathVariable Long id) {
         Request request = lifecycleService.findRequestOrThrow(id);
+        if (isCurrentUserStudent() && !request.getRequestedBy().getId().equals(currentUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(mapper.toRequestResponseDto(request));
     }
 
@@ -108,6 +138,10 @@ public class RequestController {
 
     @GetMapping("/requests/{id}/history")
     public ResponseEntity<List<HistoryEntryDto>> getHistory(@PathVariable Long id) {
+        Request request = lifecycleService.findRequestOrThrow(id);
+        if (isCurrentUserStudent() && !request.getRequestedBy().getId().equals(currentUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         List<HistoryEntryDto> body = lifecycleService.listHistory(id).stream()
                 .map(mapper::toHistoryEntryDto)
                 .collect(Collectors.toList());
@@ -120,6 +154,9 @@ public class RequestController {
     @GetMapping("/requests/{id}/summary")
     public ResponseEntity<SummaryResponseDto> getSummary(@PathVariable Long id) {
         Request request = lifecycleService.findRequestOrThrow(id);
+        if (isCurrentUserStudent() && !request.getRequestedBy().getId().equals(currentUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         SummaryResponseDto body = aiService.generateSummary(request);
         return ResponseEntity.ok(body);
     }

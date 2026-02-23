@@ -17,11 +17,13 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
             "AND (:requestTypeId IS NULL OR r.requestType.id = :requestTypeId) " +
             "AND (:priority IS NULL OR r.priority = :priority) " +
             "AND (:assignedToId IS NULL OR r.assignedTo.id = :assignedToId) " +
+            "AND (:requestedById IS NULL OR r.requestedBy.id = :requestedById) " +
             "ORDER BY r.registeredAt DESC")
     List<Request> findByFilters(
             @Param("stateId") Long stateId,
             @Param("requestTypeId") Long requestTypeId,
             @Param("priority") Priority priority,
-            @Param("assignedToId") Long assignedToId
+            @Param("assignedToId") Long assignedToId,
+            @Param("requestedById") Long requestedById
     );
 }

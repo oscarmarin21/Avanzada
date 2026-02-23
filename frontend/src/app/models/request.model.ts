@@ -94,3 +94,16 @@ export interface RequestListFilters {
   priority?: string;
   assignedTo?: number;
 }
+
+/** Response from POST /api/ai/suggest (RF-10). User must confirm or adjust before applying. */
+export interface SuggestResponseDto {
+  suggestedRequestTypeCode?: string | null;
+  suggestedPriority?: string | null;
+  available: boolean;
+  message?: string | null;
+}
+
+/** Response from GET /api/ai/status. Whether AI (suggest/summary) is configured and enabled. */
+export interface AiStatusDto {
+  available: boolean;
+}

@@ -114,19 +114,23 @@ class RequestRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<Request> all = requestRepository.findByFilters(null, null, null, null);
+        List<Request> all = requestRepository.findByFilters(null, null, null, null, null);
         assertThat(all).hasSize(2);
 
-        List<Request> byState = requestRepository.findByFilters(stateRegistrada.getId(), null, null, null);
+        List<Request> byState = requestRepository.findByFilters(stateRegistrada.getId(), null, null, null, null);
         assertThat(byState).hasSize(1);
         assertThat(byState.get(0).getState().getCode()).isEqualTo("REGISTRADA");
 
-        List<Request> byPriority = requestRepository.findByFilters(null, null, Priority.HIGH, null);
+        List<Request> byPriority = requestRepository.findByFilters(null, null, Priority.HIGH, null, null);
         assertThat(byPriority).hasSize(1);
         assertThat(byPriority.get(0).getPriority()).isEqualTo(Priority.HIGH);
 
-        List<Request> byAssignedTo = requestRepository.findByFilters(null, null, null, assignee.getId());
+        List<Request> byAssignedTo = requestRepository.findByFilters(null, null, null, assignee.getId(), null);
         assertThat(byAssignedTo).hasSize(1);
         assertThat(byAssignedTo.get(0).getAssignedTo().getId()).isEqualTo(assignee.getId());
+
+        List<Request> byRequestedBy = requestRepository.findByFilters(null, null, null, null, requester.getId());
+        assertThat(byRequestedBy).hasSize(2);
+        assertThat(byRequestedBy).allMatch(r -> r.getRequestedBy().getId().equals(requester.getId()));
     }
 }

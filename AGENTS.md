@@ -94,8 +94,8 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
 
 - **Authentication**: JWT. Login via `POST /api/auth/login` with body `{ "identifier": "...", "password": "..." }`. Response includes `token` and `user` (id, identifier, name, role). All other `/api/**` endpoints require `Authorization: Bearer <token>`. Public: `/health`, `POST /api/auth/login`.
 - **Roles** (stored in `app_user.role`, included in JWT):
-  - **STUDENT**: Register requests (POST /api/requests); view list, detail, catalogs. Cannot classify, assign, attend, or close.
-  - **STAFF**: Register requests; classify, assign, attend (lifecycle except close). Cannot close requests.
+  - **STUDENT**: Register requests (POST /api/requests); view **only their own** requests (list filtered by requestedBy; GET detail/history/summary return 403 if not the requester). Cannot classify, assign, attend, or close.
+  - **STAFF**: Register requests; view all requests; classify, assign, attend (lifecycle except close). Cannot close requests.
   - **ADMIN**: Full access including close (POST /api/requests/{id}/close).
 - **Backend**: `@PreAuthorize` on `RequestController` (e.g. `hasRole('ADMIN')` for close, `hasAnyRole('STAFF','ADMIN')` for classify/assign/attend, `hasAnyRole('STUDENT','STAFF','ADMIN')` for create). User id for audit comes from JWT (SecurityContext), not headers.
 - **Frontend**: `AuthService` (login, logout, token in sessionStorage); HTTP interceptor adds Bearer token; auth guard redirects unauthenticated users to `/login`. UI hides or disables actions by role (e.g. Close only for ADMIN, New request only when `canRegister()`).

@@ -36,6 +36,9 @@ export class RequestDetailComponent implements OnInit {
   showAssign = signal(false);
   showAttend = signal(false);
   showClose = signal(false);
+  suggestClassifyLoading = signal(false);
+  suggestClassifyMessage = signal<string | null>(null);
+  aiAvailable = signal(false);
 
   classifyForm = { requestTypeId: 0, priority: 'MEDIUM', priorityJustification: '' };
   assignForm = { assignedToId: 0 };
@@ -51,6 +54,7 @@ export class RequestDetailComponent implements OnInit {
   ngOnInit(): void {
     this.api.getRequestTypes().subscribe(rt => this.requestTypes.set(rt));
     this.api.getUsers().subscribe(u => this.users.set(u));
+    this.api.getAiStatus().subscribe(s => this.aiAvailable.set(s.available));
     const id = this.route.snapshot.paramMap.get('id');
     const numId = id ? +id : 0;
     if (!numId) {
@@ -72,6 +76,28 @@ export class RequestDetailComponent implements OnInit {
       }
       this.api.getHistory(id).subscribe(h => this.history.set(h));
       this.classifyForm.requestTypeId = r.requestTypeId;
+    });
+  }
+
+  suggestClassify(): void {
+    const req = this.request();
+    if (!req?.description?.trim()) return;
+    this.suggestClassifyMessage.set(null);
+    this.suggestClassifyLoading.set(true);
+    this.api.suggestTypeAndPriority(req.description).subscribe(res => {
+      this.suggestClassifyLoading.set(false);
+      if (res.available) {
+        if (res.suggestedRequestTypeCode) {
+          const rt = this.requestTypes().find(t => t.code === res.suggestedRequestTypeCode);
+          if (rt) this.classifyForm.requestTypeId = rt.id;
+        }
+        if (res.suggestedPriority && ['LOW', 'MEDIUM', 'HIGH'].includes(res.suggestedPriority)) {
+          this.classifyForm.priority = res.suggestedPriority;
+        }
+        this.suggestClassifyMessage.set('Type and priority suggested. Confirm or adjust, then click Classify.');
+      } else {
+        this.suggestClassifyMessage.set(res.message ?? 'Suggestion unavailable (AI not configured or temporary error).');
+      }
     });
   }
 

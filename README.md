@@ -53,14 +53,30 @@ docker compose up mariadb -d
 
 Connection: host `localhost`, port `3307`, database `avanzada`, user `avanzada`, password `avanzada` (as in `docker-compose.yml`).
 
-**Initialize reference data and admin user:** with MariaDB running, run the backend once with the `--init-data` argument. It will create states, channels, request types, and an admin user (identifier `admin`, password `admin123`), then exit:
+**Initialize and populate the database:** with MariaDB running, run the backend once with the `--init-data` argument. It will create:
+
+- **Reference data:** states, channels, request types (all tables populated).
+- **Users:** admin, staff, student (each with a known password for testing).
+- **Sample requests and history:** 5 requests in different lifecycle states, with history entries (only when the request table is empty).
 
 ```bash
 cd backend
 mvn spring-boot:run -Dspring-boot.run.arguments=--init-data
 ```
 
-After that, start the backend normally (`mvn spring-boot:run`) and log in at http://localhost:4000/login with `admin` / `admin123`. The command is idempotent: you can run it again without duplicating data.
+**Test users (identifier / password):**
+
+| Role   | Identifier | Password   | Notes |
+|--------|------------|------------|-------|
+| ADMIN  | admin      | admin123   |       |
+| STAFF  | staff      | staff123   |       |
+| STUDENT| student1   | student123 | Has sample requests |
+| STUDENT| student2   | student123 | Has sample requests |
+| STUDENT| student3   | student123 | Has sample requests |
+| STUDENT| student4   | student123 | Has sample requests |
+| STUDENT| student5   | student123 | User only (no requests) |
+
+After that, start the backend normally (`mvn spring-boot:run`) and log in at http://localhost:4000/login. The init command is idempotent: you can run it again without duplicating reference data or users; sample requests are created only when there are no requests yet.
 
 **Full DB reset (drop all tables, recreate schema, then init-data):** use the `reset` profile so Hibernate runs with `ddl-auto: create`. Use the same profile as your backend (e.g. `docker` in dev container). If port 9000 is in use, pick another port:
 
@@ -94,7 +110,7 @@ Served at http://localhost:4000. The proxy forwards `/api` to `http://localhost:
 
 - **Login**: `POST /api/auth/login` with `{ "identifier": "...", "password": "..." }`. Returns a JWT and user info (id, identifier, name, role).
 - **Roles** (RF-13):
-  - **STUDENT**: Can register new requests and view data. Cannot classify, assign, attend, or close.
+  - **STUDENT**: Can register new requests and view only their own requests. Cannot classify, assign, attend, or close.
   - **STAFF**: Can register, classify, assign, and attend requests. Cannot close.
   - **ADMIN**: Full access including closing requests.
 - If no user in the database has a password set, the backend sets the first user’s password to `admin123` and role to ADMIN on startup (see `DevAuthBootstrap`). Use that user’s identifier and `admin123` to log in. In production, set user passwords explicitly (e.g. via DB or future admin API) and set `JWT_SECRET` (min 32 characters).
@@ -115,6 +131,13 @@ The backend can optionally call an OpenAI-compatible LLM for:
 | `OPENAI_API_URL`         | `https://api.openai.com/v1/chat/completions` | Endpoint (OpenAI or compatible). |
 | `OPENAI_MODEL`           | `gpt-3.5-turbo`                   | Model name. |
 | `app.ai.timeout-seconds` | `10`                              | Timeout for LLM requests. |
+
+**Using a `.env` file (recommended for local development):**
+
+1. Copy `backend/.env.example` to `backend/.env`.
+2. In `backend/.env`, set `OPENAI_API_KEY=sk-your-key` and `APP_AI_ENABLED=true`.
+3. The "Backend: Spring Boot" task in `.vscode/tasks.json` loads `backend/.env` automatically when starting the backend (if the file exists). No extension required.
+4. Keep `.env` out of version control (it is in `.gitignore`).
 
 **When IA is disabled or unavailable:**
 

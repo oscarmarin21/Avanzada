@@ -13,7 +13,9 @@ import {
   ChannelDto,
   StateDto,
   UserDto,
-  RequestListFilters
+  RequestListFilters,
+  SuggestResponseDto,
+  AiStatusDto
 } from '../models/request.model';
 
 const API = '/api';
@@ -95,6 +97,20 @@ export class RequestApiService {
   getUsers(): Observable<UserDto[]> {
     return this.http.get<UserDto[]>(`${API}/users`).pipe(
       catchError(() => of([]))
+    );
+  }
+
+  /** Returns whether AI features are available (key set and enabled). Use to show/hide AI buttons. */
+  getAiStatus(): Observable<AiStatusDto> {
+    return this.http.get<AiStatusDto>(`${API}/ai/status`).pipe(
+      catchError(() => of({ available: false }))
+    );
+  }
+
+  /** Suggests request type and priority from description (RF-10). User must confirm or adjust. */
+  suggestTypeAndPriority(description: string): Observable<SuggestResponseDto> {
+    return this.http.post<SuggestResponseDto>(`${API}/ai/suggest`, { description }).pipe(
+      catchError(() => of({ available: false, message: 'Suggestion request failed.' }))
     );
   }
 }
