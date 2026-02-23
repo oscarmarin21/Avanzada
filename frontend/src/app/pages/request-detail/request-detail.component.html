@@ -1,47 +1,47 @@
-<a routerLink="/" class="inline-flex items-center gap-1 font-medium text-primary hover:underline mb-6">← Back to list</a>
+<a routerLink="/" class="inline-flex items-center gap-1 font-medium text-primary hover:underline mb-6">{{ 'requestDetail.backToList' | translate }}</a>
 
 @if (loading()) {
   <div class="flex items-center gap-2 text-gray-600">
     <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-    <span>Loading…</span>
+    <span>{{ 'requestDetail.loading' | translate }}</span>
   </div>
 } @else if (error()) {
   <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ error() }}</div>
 } @else {
   @if (request(); as reqRef) {
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">Request #{{ reqRef.id }}</h1>
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">{{ 'requestDetail.title' | translate:{ id: reqRef.id } }}</h1>
 
   @if (actionError()) {
     <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">{{ actionError() }}</div>
   }
 
   <section class="mb-6 p-6 bg-white border border-gray-200 rounded-lg shadow">
-    <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">Details</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">{{ 'requestDetail.details' | translate }}</h2>
     <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
-      <dt class="font-semibold text-gray-700">Description</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.description' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.description }}</dd>
-      <dt class="font-semibold text-gray-700">Type</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.type' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.requestTypeName ?? reqRef.requestTypeCode ?? reqRef.requestTypeId }}</dd>
-      <dt class="font-semibold text-gray-700">Channel</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.channel' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.channelName ?? reqRef.channelCode ?? reqRef.channelId }}</dd>
-      <dt class="font-semibold text-gray-700">State</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.state' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.stateName ?? reqRef.stateCode ?? reqRef.stateId }}</dd>
       @if (reqRef.priority) {
-        <dt class="font-semibold text-gray-700">Priority</dt>
+        <dt class="font-semibold text-gray-700">{{ 'requestDetail.priority' | translate }}</dt>
         <dd class="text-gray-900">{{ reqRef.priority }}</dd>
       }
       @if (reqRef.priorityJustification) {
-        <dt class="font-semibold text-gray-700">Priority justification</dt>
+        <dt class="font-semibold text-gray-700">{{ 'requestDetail.priorityJustification' | translate }}</dt>
         <dd class="text-gray-900">{{ reqRef.priorityJustification }}</dd>
       }
-      <dt class="font-semibold text-gray-700">Requested by</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.requestedBy' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.requestedByName ?? reqRef.requestedByIdentifier ?? reqRef.requestedById }}</dd>
-      <dt class="font-semibold text-gray-700">Assigned to</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.assignedTo' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.assignedToName ?? reqRef.assignedToIdentifier ?? '—' }}</dd>
-      <dt class="font-semibold text-gray-700">Registered at</dt>
+      <dt class="font-semibold text-gray-700">{{ 'requestDetail.registeredAt' | translate }}</dt>
       <dd class="text-gray-900">{{ reqRef.registeredAt | date:'medium' }}</dd>
       @if (reqRef.closureObservation) {
-        <dt class="font-semibold text-gray-700">Closure observation</dt>
+        <dt class="font-semibold text-gray-700">{{ 'requestDetail.closureObservation' | translate }}</dt>
         <dd class="text-gray-900">{{ reqRef.closureObservation }}</dd>
       }
     </dl>
@@ -52,16 +52,16 @@
       @if (canClassify() && auth.canClassifyOrAssign()) {
         @if (showClassify()) {
           <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">Classify</h3>
+            <h3 class="text-base font-semibold text-gray-900 mb-3">{{ 'requestDetail.classify' | translate }}</h3>
             @if (aiAvailable()) {
               <div class="mb-3">
                 <button type="button" (click)="suggestClassify()" [disabled]="suggestClassifyLoading()"
                   class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
                   @if (suggestClassifyLoading()) {
                     <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Suggesting…
+                    {{ 'requestDetail.suggesting' | translate }}
                   } @else {
-                    Suggest type &amp; priority (AI)
+                    {{ 'requestDetail.suggestAi' | translate }}
                   }
                 </button>
                 @if (suggestClassifyMessage()) {
@@ -71,7 +71,7 @@
             }
             <form (ngSubmit)="submitClassify()" class="flex flex-wrap gap-3 items-end">
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">Type</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.type' | translate }}</label>
                 <select [(ngModel)]="classifyForm.requestTypeId" name="requestTypeId" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[160px] p-2.5">
                   @for (rt of requestTypes(); track rt.id) {
                     <option [value]="rt.id">{{ rt.name }}</option>
@@ -79,7 +79,7 @@
                 </select>
               </div>
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">Priority</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.priority' | translate }}</label>
                 <select [(ngModel)]="classifyForm.priority" name="priority" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
                   <option value="LOW">LOW</option>
                   <option value="MEDIUM">MEDIUM</option>
@@ -87,80 +87,80 @@
                 </select>
               </div>
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">Justification</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.justification' | translate }}</label>
                 <input type="text" [(ngModel)]="classifyForm.priorityJustification" name="priorityJustification" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5" />
               </div>
-              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Classify</button>
-              <button type="button" (click)="showClassify.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.classify' | translate }}</button>
+              <button type="button" (click)="showClassify.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.cancel' | translate }}</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showClassify.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Classify</button>
+          <button type="button" (click)="showClassify.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.classify' | translate }}</button>
         }
       }
       @if (canAssign() && auth.canClassifyOrAssign()) {
         @if (showAssign()) {
           <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">Assign</h3>
+            <h3 class="text-base font-semibold text-gray-900 mb-3">{{ 'requestDetail.assign' | translate }}</h3>
             <form (ngSubmit)="submitAssign()" class="flex flex-wrap gap-3 items-end">
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">Assigned to</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.assignedTo' | translate }}</label>
                 <select [(ngModel)]="assignForm.assignedToId" name="assignedToId" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5">
-                  <option [value]="0">Select user</option>
+                  <option [value]="0">{{ 'requestDetail.selectUser' | translate }}</option>
                   @for (u of users(); track u.id) {
                     <option [value]="u.id">{{ u.name }} ({{ u.identifier }})</option>
                   }
                 </select>
               </div>
-              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Assign</button>
-              <button type="button" (click)="showAssign.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.assign' | translate }}</button>
+              <button type="button" (click)="showAssign.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.cancel' | translate }}</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showAssign.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Assign</button>
+          <button type="button" (click)="showAssign.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.assign' | translate }}</button>
         }
       }
       @if (canAttend() && auth.canClassifyOrAssign()) {
         @if (showAttend()) {
           <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">Start attention</h3>
+            <h3 class="text-base font-semibold text-gray-900 mb-3">{{ 'requestDetail.startAttention' | translate }}</h3>
             <form (ngSubmit)="submitAttend()" class="flex flex-wrap gap-3 items-end">
               <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">Observations</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.observations' | translate }}</label>
                 <input type="text" [(ngModel)]="attendForm.observations" name="observations" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 min-w-[200px] p-2.5" />
               </div>
-              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Start attention</button>
-              <button type="button" (click)="showAttend.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.startAttention' | translate }}</button>
+              <button type="button" (click)="showAttend.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.cancel' | translate }}</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showAttend.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Start attention</button>
+          <button type="button" (click)="showAttend.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.startAttention' | translate }}</button>
         }
       }
       @if (canClose() && auth.canClose()) {
         @if (showClose()) {
           <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">Close request</h3>
+            <h3 class="text-base font-semibold text-gray-900 mb-3">{{ 'requestDetail.closeRequest' | translate }}</h3>
             <form (ngSubmit)="submitClose()" class="flex flex-wrap gap-3 items-end">
               <div class="flex-1 min-w-[280px]">
-                <label class="block mb-1 text-sm font-medium text-gray-700">Closure observation (required)</label>
+                <label class="block mb-1 text-sm font-medium text-gray-700">{{ 'requestDetail.closureObservationRequired' | translate }}</label>
                 <textarea [(ngModel)]="closeForm.closureObservation" name="closureObservation" rows="3" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 w-full p-2.5"></textarea>
               </div>
-              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Close</button>
-              <button type="button" (click)="showClose.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</button>
+              <button type="submit" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.close' | translate }}</button>
+              <button type="button" (click)="showClose.set(false)" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.cancel' | translate }}</button>
             </form>
           </div>
         } @else {
-          <button type="button" (click)="showClose.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">Close request</button>
+          <button type="button" (click)="showClose.set(true)" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">{{ 'requestDetail.closeRequest' | translate }}</button>
         }
       }
     </section>
   } @else {
-    <p class="text-gray-500 mb-4">This request is closed. No further actions are available.</p>
+    <p class="text-gray-500 mb-4">{{ 'requestDetail.closedMessage' | translate }}</p>
   }
 
   <section class="mb-6 p-6 bg-white border border-gray-200 rounded-lg shadow">
-    <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">History</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mt-0 mb-3">{{ 'requestDetail.history' | translate }}</h2>
     <ul class="list-none p-0 m-0 divide-y divide-gray-200">
       @for (h of history(); track h.id) {
         <li class="py-3 flex flex-wrap gap-2">
@@ -174,7 +174,7 @@
       }
     </ul>
     @if (history().length === 0) {
-      <p class="text-gray-600">No history entries.</p>
+      <p class="text-gray-600">{{ 'requestDetail.noHistory' | translate }}</p>
     }
   </section>
   }

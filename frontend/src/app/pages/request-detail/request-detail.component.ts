@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RequestApiService } from '../../services/request-api.service';
 import { AuthService } from '../../services/auth.service';
 import {
@@ -15,13 +16,14 @@ import {
 @Component({
   selector: 'app-request-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe],
+  imports: [RouterLink, FormsModule, DatePipe, TranslateModule],
   templateUrl: './request-detail.component.html'
 })
 export class RequestDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(RequestApiService);
+  private translate = inject(TranslateService);
   readonly auth = inject(AuthService);
 
   request = signal<RequestResponse | null>(null);
@@ -71,7 +73,7 @@ export class RequestDetailComponent implements OnInit {
       this.request.set(r);
       this.loading.set(false);
       if (!r) {
-        this.error.set('Request not found');
+        this.error.set(this.translate.instant('requestDetail.errors.notFound'));
         return;
       }
       this.api.getHistory(id).subscribe(h => this.history.set(h));
@@ -94,9 +96,9 @@ export class RequestDetailComponent implements OnInit {
         if (res.suggestedPriority && ['LOW', 'MEDIUM', 'HIGH'].includes(res.suggestedPriority)) {
           this.classifyForm.priority = res.suggestedPriority;
         }
-        this.suggestClassifyMessage.set('Type and priority suggested. Confirm or adjust, then click Classify.');
+        this.suggestClassifyMessage.set(this.translate.instant('requestDetail.errors.suggestOk'));
       } else {
-        this.suggestClassifyMessage.set(res.message ?? 'Suggestion unavailable (AI not configured or temporary error).');
+        this.suggestClassifyMessage.set(res.message ?? this.translate.instant('requestDetail.errors.suggestUnavailable'));
       }
     });
   }
@@ -116,7 +118,7 @@ export class RequestDetailComponent implements OnInit {
         this.showClassify.set(false);
         this.load(req.id);
       } else {
-        this.actionError.set('Classification failed');
+        this.actionError.set(this.translate.instant('requestDetail.errors.classificationFailed'));
       }
     });
   }
@@ -131,7 +133,7 @@ export class RequestDetailComponent implements OnInit {
         this.showAssign.set(false);
         this.load(req.id);
       } else {
-        this.actionError.set('Assignment failed');
+        this.actionError.set(this.translate.instant('requestDetail.errors.assignmentFailed'));
       }
     });
   }
@@ -147,7 +149,7 @@ export class RequestDetailComponent implements OnInit {
         this.attendForm.observations = '';
         this.load(req.id);
       } else {
-        this.actionError.set('Attend action failed');
+        this.actionError.set(this.translate.instant('requestDetail.errors.attendFailed'));
       }
     });
   }
@@ -156,7 +158,7 @@ export class RequestDetailComponent implements OnInit {
     const req = this.request();
     const obs = this.closeForm.closureObservation?.trim();
     if (!req || !this.canClose() || !obs) {
-      this.actionError.set('Closure observation is required');
+      this.actionError.set(this.translate.instant('requestDetail.errors.closureRequired'));
       return;
     }
     this.actionError.set(null);
@@ -167,7 +169,7 @@ export class RequestDetailComponent implements OnInit {
         this.closeForm.closureObservation = '';
         this.load(req.id);
       } else {
-        this.actionError.set('Close failed');
+        this.actionError.set(this.translate.instant('requestDetail.errors.closeFailed'));
       }
     });
   }

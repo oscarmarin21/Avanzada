@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RequestApiService } from '../../services/request-api.service';
 import { AuthService } from '../../services/auth.service';
 import { RequestTypeDto, ChannelDto, UserDto } from '../../models/request.model';
@@ -8,12 +9,13 @@ import { RequestTypeDto, ChannelDto, UserDto } from '../../models/request.model'
 @Component({
   selector: 'app-request-create',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, TranslateModule],
   templateUrl: './request-create.component.html'
 })
 export class RequestCreateComponent implements OnInit {
   private router = inject(Router);
   private api = inject(RequestApiService);
+  private translate = inject(TranslateService);
   readonly auth = inject(AuthService);
 
   requestTypes = signal<RequestTypeDto[]>([]);
@@ -48,7 +50,7 @@ export class RequestCreateComponent implements OnInit {
   suggestType(): void {
     const d = this.form.description?.trim();
     if (!d) {
-      this.suggestMessage.set('Enter a description first to get a suggestion.');
+      this.suggestMessage.set(this.translate.instant('requestCreate.suggest.enterDescriptionFirst'));
       return;
     }
     this.suggestMessage.set(null);
@@ -59,12 +61,12 @@ export class RequestCreateComponent implements OnInit {
         const rt = this.requestTypes().find(t => t.code === res.suggestedRequestTypeCode);
         if (rt) {
           this.form.requestTypeId = rt.id;
-          this.suggestMessage.set(`Suggested type: ${rt.name}. You can change it before creating.`);
+          this.suggestMessage.set(this.translate.instant('requestCreate.suggest.suggestedType', { name: rt.name }));
         } else {
-          this.suggestMessage.set('Suggestion received but type not found. You can still choose manually.');
+          this.suggestMessage.set(this.translate.instant('requestCreate.suggest.typeNotFound'));
         }
       } else {
-        this.suggestMessage.set(res.message ?? 'Suggestion unavailable (AI not configured or temporary error).');
+        this.suggestMessage.set(res.message ?? this.translate.instant('requestCreate.suggest.unavailable'));
       }
     });
   }
@@ -72,7 +74,7 @@ export class RequestCreateComponent implements OnInit {
   submit(): void {
     const d = this.form.description?.trim();
     if (!d || !this.form.requestTypeId || !this.form.channelId || !this.form.requestedById) {
-      this.error.set('Please fill in all required fields.');
+      this.error.set(this.translate.instant('requestCreate.errors.requiredFields'));
       return;
     }
     this.error.set(null);
@@ -88,12 +90,12 @@ export class RequestCreateComponent implements OnInit {
         if (created) {
           this.router.navigate(['/requests', created.id]);
         } else {
-          this.error.set('Failed to create request.');
+          this.error.set(this.translate.instant('requestCreate.errors.createFailed'));
         }
       },
       error: () => {
         this.submitting.set(false);
-        this.error.set('Failed to create request.');
+        this.error.set(this.translate.instant('requestCreate.errors.createFailed'));
       }
     });
   }

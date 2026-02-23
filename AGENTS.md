@@ -27,6 +27,7 @@ Avanzada/
 │   ├── pom.xml
 │   └── Dockerfile
 ├── frontend/                # Angular 18, standalone components, Tailwind CSS + Flowbite
+│   ├── public/i18n/         # i18n JSON (es.json base, en.json)
 │   ├── src/app/             # Components, routes, config
 │   ├── tailwind.config.js   # Theme (colors, etc.) and content paths
 │   ├── DESIGN.md            # Design system and Tailwind patterns
@@ -79,6 +80,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
   - Project: `frontend`, component prefix `app`.  
   - Angular 18 with standalone components.  
   - **Styling**: Tailwind CSS and Flowbite. No component or global CSS files; use Tailwind + Flowbite utility/component classes. Theme in `tailwind.config.js`, patterns and Flowbite usage in `frontend/DESIGN.md`. Interactive components are initialised via `initFlowbite()` in `AppComponent`. Do not add `styleUrl` or new `.css` files.  
+  - **i18n**: Runtime translations with `@ngx-translate/core` and `@ngx-translate/http-loader`. Default language is Spanish (`es`); English (`en`) is supported. Translation files: `frontend/public/i18n/es.json` (base), `frontend/public/i18n/en.json`. Config in `app.config.ts` (`provideTranslateService`). In components that need translations, import `TranslateModule` and use the `translate` pipe (e.g. `{{ 'key' | translate }}`) or inject `TranslateService` and call `use('es'|'en')` to switch language.  
   - API calls: use relative path `/api/...` so that in dev (proxy) and Docker (nginx) they target the backend.  
   - Serve/proxy config: `angular.json` (port 4000) and `proxy.conf.json`.  
   - See `.cursor/rules/` for Angular/TypeScript patterns.

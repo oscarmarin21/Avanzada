@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../../services/auth.service';
 import { RequestApiService } from '../../services/request-api.service';
 import { RequestResponse, RequestListFilters, StateDto, RequestTypeDto, UserDto } from '../../models/request.model';
 
@@ -10,11 +12,13 @@ const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
 @Component({
   selector: 'app-request-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe],
+  imports: [RouterLink, FormsModule, DatePipe, TranslateModule],
   templateUrl: './request-list.component.html'
 })
 export class RequestListComponent implements OnInit {
+  readonly auth = inject(AuthService);
   private api = inject(RequestApiService);
+  private translate = inject(TranslateService);
 
   requests = signal<RequestResponse[]>([]);
   states = signal<StateDto[]>([]);
@@ -33,7 +37,9 @@ export class RequestListComponent implements OnInit {
   ngOnInit(): void {
     this.api.getStates().subscribe(s => this.states.set(s));
     this.api.getRequestTypes().subscribe(rt => this.requestTypes.set(rt));
-    this.api.getUsers().subscribe(u => this.users.set(u));
+    if (this.auth.canClassifyOrAssign()) {
+      this.api.getUsers().subscribe(u => this.users.set(u));
+    }
     this.load();
   }
 
@@ -55,7 +61,7 @@ export class RequestListComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load requests');
+        this.error.set(this.translate.instant('requestsList.errors.loadFailed'));
         this.loading.set(false);
       }
     });

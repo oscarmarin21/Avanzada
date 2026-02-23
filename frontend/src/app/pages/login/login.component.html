@@ -9,8 +9,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-white tracking-tight">Request management</h1>
-        <p class="text-white/90 text-sm mt-1">Sign in with your credentials</p>
+        <h1 class="text-xl font-bold text-white tracking-tight">{{ 'login.title' | translate }}</h1>
+        <p class="text-white/90 text-sm mt-1">{{ 'login.subtitle' | translate }}</p>
+        <p class="mt-3 text-white/80 text-xs" [attr.aria-label]="'common.language' | translate">
+          <button type="button" (click)="setLang('es')" [class.font-semibold]="currentLang === 'es'" [class.underline]="currentLang === 'es'" class="hover:text-white hover:underline rounded px-1">ES</button>
+          <span class="opacity-60 mx-1">|</span>
+          <button type="button" (click)="setLang('en')" [class.font-semibold]="currentLang === 'en'" [class.underline]="currentLang === 'en'" class="hover:text-white hover:underline rounded px-1">EN</button>
+        </p>
       </div>
 
       <div class="px-8 py-8">
@@ -25,15 +30,15 @@
 
         <form (ngSubmit)="submit()" class="space-y-5">
           <div>
-            <label for="identifier" class="block mb-2 text-sm font-semibold text-gray-700">Identifier</label>
+            <label for="identifier" class="block mb-2 text-sm font-semibold text-gray-700">{{ 'login.identifier' | translate }}</label>
             <input id="identifier" type="text" [(ngModel)]="identifier" name="identifier" autocomplete="username" required
-              placeholder="e.g. admin"
+              [placeholder]="'login.identifierPlaceholder' | translate"
               class="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 block w-full p-3 transition-shadow placeholder:text-gray-400" />
           </div>
           <div>
-            <label for="password" class="block mb-2 text-sm font-semibold text-gray-700">Password</label>
+            <label for="password" class="block mb-2 text-sm font-semibold text-gray-700">{{ 'login.password' | translate }}</label>
             <input id="password" type="password" [(ngModel)]="password" name="password" autocomplete="current-password" required
-              placeholder="••••••••"
+              [placeholder]="'login.passwordPlaceholder' | translate"
               class="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 block w-full p-3 transition-shadow placeholder:text-gray-400" />
           </div>
           <button type="submit" [disabled]="loading"
@@ -43,9 +48,9 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span>Signing in…</span>
+              <span>{{ 'login.signingIn' | translate }}</span>
             } @else {
-              <span>Sign in</span>
+              <span>{{ 'login.signIn' | translate }}</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
@@ -53,7 +58,7 @@
           </button>
         </form>
 
-        <p class="mt-6 text-center text-xs text-gray-500">Use your institutional identifier and password.</p>
+        <p class="mt-6 text-center text-xs text-gray-500">{{ 'login.hint' | translate }}</p>
       </div>
     </div>
   </div>

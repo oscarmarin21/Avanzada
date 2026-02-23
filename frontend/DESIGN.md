@@ -30,6 +30,10 @@ Use these patterns so the UI stays coherent. Prefer [Flowbite components](https:
 - **Error / alert**: `p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50` (Flowbite alert style).
 - **Link**: `font-medium text-primary hover:underline`.
 
+## Internationalization (i18n)
+
+The app uses **ngx-translate** for runtime translations. Default language is **Spanish** (`es`); **English** (`en`) is also supported. Translation files live in `public/i18n/` (`es.json`, `en.json`) and are loaded via HTTP. In a component template use the `translate` pipe: `{{ 'some.key' | translate }}`; in code inject `TranslateService` and call `translate.use('es')` or `translate.use('en')` to switch language. Add new keys to both JSON files when introducing translatable strings.
+
 ## Adding new components
 
 Do not add new `styleUrl` or `.css` files. Use only Tailwind classes in the template (and optionally `@apply` inside a single shared Tailwind layer if we introduce one). Follow the patterns above for nav, buttons, cards, forms, and tables so the app stays consistent.

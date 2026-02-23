@@ -1,11 +1,18 @@
 @if (auth.isAuthenticated()) {
   <nav class="flex flex-wrap gap-4 items-center px-6 py-4 bg-primary text-white border-b-2 border-uniquindio-gold shadow">
-    <a routerLink="/" routerLinkActive="underline" [routerLinkActiveOptions]="{ exact: true }" class="text-white no-underline hover:underline font-medium">Requests</a>
+    <a routerLink="/" routerLinkActive="underline" [routerLinkActiveOptions]="{ exact: true }" class="text-white no-underline hover:underline font-medium">{{ 'nav.requests' | translate }}</a>
     @if (auth.canRegister()) {
-      <a routerLink="/requests/new" routerLinkActive="underline" class="text-white no-underline hover:underline font-medium">New request</a>
+      <a routerLink="/requests/new" routerLinkActive="underline" class="text-white no-underline hover:underline font-medium">{{ 'nav.newRequest' | translate }}</a>
     }
-    <span class="ml-auto text-gray-200 text-sm">{{ auth.user()?.name }} ({{ auth.user()?.role }})</span>
-    <button type="button" class="text-white bg-primary-light hover:bg-primary-dark focus:ring-4 focus:ring-primary-dark/50 font-medium rounded-lg text-sm px-4 py-2 transition-colors" (click)="logout()">Logout</button>
+    <span class="ml-auto flex items-center gap-3">
+      <span class="text-gray-200 text-sm" [attr.aria-label]="'common.language' | translate">
+        <button type="button" (click)="setLang('es')" [class.font-bold]="currentLang() === 'es'" [class.underline]="currentLang() === 'es'" class="text-white/90 hover:text-white hover:underline font-medium text-sm px-1 py-0.5 rounded">ES</button>
+        <span class="text-white/60 mx-0.5">|</span>
+        <button type="button" (click)="setLang('en')" [class.font-bold]="currentLang() === 'en'" [class.underline]="currentLang() === 'en'" class="text-white/90 hover:text-white hover:underline font-medium text-sm px-1 py-0.5 rounded">EN</button>
+      </span>
+      <span class="text-gray-200 text-sm">{{ auth.user()?.name }} ({{ auth.user()?.role }})</span>
+      <button type="button" class="text-white bg-primary-light hover:bg-primary-dark focus:ring-4 focus:ring-primary-dark/50 font-medium rounded-lg text-sm px-4 py-2 transition-colors" (click)="logout()">{{ 'nav.logout' | translate }}</button>
+    </span>
   </nav>
 }
 <main class="p-6 max-w-6xl mx-auto">

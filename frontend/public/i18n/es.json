@@ -1,0 +1,122 @@
+{
+  "common": {
+    "language": "Idioma"
+  },
+  "nav": {
+    "requests": "Solicitudes",
+    "newRequest": "Nueva solicitud",
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "title": "Gestión de solicitudes",
+    "subtitle": "Inicia sesión con tus credenciales",
+    "identifier": "Identificador",
+    "identifierPlaceholder": "ej. admin",
+    "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Iniciar sesión",
+    "signingIn": "Iniciando sesión…",
+    "hint": "Usa tu identificador y contraseña institucionales.",
+    "errors": {
+      "required": "El identificador y la contraseña son obligatorios.",
+      "invalid": "Identificador o contraseña incorrectos.",
+      "failed": "Error al iniciar sesión. Inténtalo de nuevo."
+    }
+  },
+  "requestsList": {
+    "title": "Solicitudes",
+    "filters": {
+      "state": "Estado",
+      "type": "Tipo",
+      "priority": "Prioridad",
+      "assignedTo": "Asignado a",
+      "all": "Todos"
+    },
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "loading": "Cargando…",
+    "table": {
+      "id": "Id",
+      "type": "Tipo",
+      "state": "Estado",
+      "priority": "Prioridad",
+      "assignedTo": "Asignado a",
+      "registered": "Registrado",
+      "actions": "Acciones",
+      "view": "Ver"
+    },
+    "empty": "No se encontraron solicitudes.",
+    "errors": {
+      "loadFailed": "Error al cargar las solicitudes."
+    }
+  },
+  "requestDetail": {
+    "backToList": "← Volver al listado",
+    "loading": "Cargando…",
+    "title": "Solicitud #{{id}}",
+    "details": "Detalle",
+    "description": "Descripción",
+    "type": "Tipo",
+    "channel": "Canal",
+    "state": "Estado",
+    "priority": "Prioridad",
+    "priorityJustification": "Justificación de prioridad",
+    "requestedBy": "Solicitado por",
+    "assignedTo": "Asignado a",
+    "registeredAt": "Registrado el",
+    "closureObservation": "Observación de cierre",
+    "classify": "Clasificar",
+    "assign": "Asignar",
+    "startAttention": "Iniciar atención",
+    "closeRequest": "Cerrar solicitud",
+    "suggestAi": "Sugerir tipo y prioridad (IA)",
+    "suggesting": "Sugiriendo…",
+    "justification": "Justificación",
+    "cancel": "Cancelar",
+    "selectUser": "Seleccionar usuario",
+    "observations": "Observaciones",
+    "closureObservationRequired": "Observación de cierre (obligatoria)",
+    "close": "Cerrar",
+    "closedMessage": "Esta solicitud está cerrada. No hay más acciones disponibles.",
+    "history": "Historial",
+    "noHistory": "Sin registros en el historial.",
+    "errors": {
+      "notFound": "Solicitud no encontrada.",
+      "classificationFailed": "Error al clasificar.",
+      "assignmentFailed": "Error al asignar.",
+      "attendFailed": "Error al iniciar atención",
+      "closureRequired": "La observación de cierre es obligatoria.",
+      "closeFailed": "Error al cerrar.",
+      "suggestOk": "Tipo y prioridad sugeridos. Confirma o ajusta y pulsa Clasificar.",
+      "suggestUnavailable": "Sugerencia no disponible (IA no configurada o error temporal)."
+    }
+  },
+  "requestCreate": {
+    "backToList": "Volver al listado",
+    "title": "Nueva solicitud",
+    "subtitle": "Registra una solicitud académica. Completa los datos a continuación.",
+    "descriptionRequired": "Descripción (obligatoria)",
+    "descriptionPlaceholder": "Describe tu solicitud (ej. homologación, cupo, consulta…)",
+    "suggestType": "Sugerir tipo (IA)",
+    "suggesting": "Sugiriendo…",
+    "requestTypeRequired": "Tipo de solicitud (obligatorio)",
+    "selectType": "Seleccionar tipo",
+    "channelRequired": "Canal (obligatorio)",
+    "selectChannel": "Seleccionar canal",
+    "requestedBy": "Solicitado por",
+    "requestedByRequired": "Solicitado por (obligatorio)",
+    "createRequest": "Crear solicitud",
+    "creating": "Creando…",
+    "cancel": "Cancelar",
+    "suggest": {
+      "enterDescriptionFirst": "Escribe primero la descripción para obtener una sugerencia.",
+      "suggestedType": "Tipo sugerido: {{name}}. Puedes cambiarlo antes de crear.",
+      "typeNotFound": "Se recibió una sugerencia pero no se encontró el tipo. Puedes elegir manualmente.",
+      "unavailable": "Sugerencia no disponible (IA no configurada o error temporal)."
+    },
+    "errors": {
+      "requiredFields": "Completa todos los campos obligatorios.",
+      "createFailed": "Error al crear la solicitud."
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "common": {
+    "language": "Language"
+  },
+  "nav": {
+    "requests": "Requests",
+    "newRequest": "New request",
+    "logout": "Logout"
+  },
+  "login": {
+    "title": "Request management",
+    "subtitle": "Sign in with your credentials",
+    "identifier": "Identifier",
+    "identifierPlaceholder": "e.g. admin",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "hint": "Use your institutional identifier and password.",
+    "errors": {
+      "required": "Identifier and password are required.",
+      "invalid": "Invalid identifier or password.",
+      "failed": "Login failed. Please try again."
+    }
+  },
+  "requestsList": {
+    "title": "Requests",
+    "filters": {
+      "state": "State",
+      "type": "Type",
+      "priority": "Priority",
+      "assignedTo": "Assigned to",
+      "all": "All"
+    },
+    "apply": "Apply",
+    "clear": "Clear",
+    "loading": "Loading…",
+    "table": {
+      "id": "Id",
+      "type": "Type",
+      "state": "State",
+      "priority": "Priority",
+      "assignedTo": "Assigned to",
+      "registered": "Registered",
+      "actions": "Actions",
+      "view": "View"
+    },
+    "empty": "No requests found.",
+    "errors": {
+      "loadFailed": "Failed to load requests."
+    }
+  },
+  "requestDetail": {
+    "backToList": "← Back to list",
+    "loading": "Loading…",
+    "title": "Request #{{id}}",
+    "details": "Details",
+    "description": "Description",
+    "type": "Type",
+    "channel": "Channel",
+    "state": "State",
+    "priority": "Priority",
+    "priorityJustification": "Priority justification",
+    "requestedBy": "Requested by",
+    "assignedTo": "Assigned to",
+    "registeredAt": "Registered at",
+    "closureObservation": "Closure observation",
+    "classify": "Classify",
+    "assign": "Assign",
+    "startAttention": "Start attention",
+    "closeRequest": "Close request",
+    "suggestAi": "Suggest type & priority (AI)",
+    "suggesting": "Suggesting…",
+    "justification": "Justification",
+    "cancel": "Cancel",
+    "selectUser": "Select user",
+    "observations": "Observations",
+    "closureObservationRequired": "Closure observation (required)",
+    "close": "Close",
+    "closedMessage": "This request is closed. No further actions are available.",
+    "history": "History",
+    "noHistory": "No history entries.",
+    "errors": {
+      "notFound": "Request not found",
+      "classificationFailed": "Classification failed",
+      "assignmentFailed": "Assignment failed",
+      "attendFailed": "Attend action failed",
+      "closureRequired": "Closure observation is required",
+      "closeFailed": "Close failed",
+      "suggestOk": "Type and priority suggested. Confirm or adjust, then click Classify.",
+      "suggestUnavailable": "Suggestion unavailable (AI not configured or temporary error)."
+    }
+  },
+  "requestCreate": {
+    "backToList": "Back to list",
+    "title": "New request",
+    "subtitle": "Register an academic request. Fill in the details below.",
+    "descriptionRequired": "Description (required)",
+    "descriptionPlaceholder": "Describe your request (e.g. homologation, quota, consultation…)",
+    "suggestType": "Suggest type (AI)",
+    "suggesting": "Suggesting…",
+    "requestTypeRequired": "Request type (required)",
+    "selectType": "Select type",
+    "channelRequired": "Channel (required)",
+    "selectChannel": "Select channel",
+    "requestedBy": "Requested by",
+    "requestedByRequired": "Requested by (required)",
+    "createRequest": "Create request",
+    "creating": "Creating…",
+    "cancel": "Cancel",
+    "suggest": {
+      "enterDescriptionFirst": "Enter a description first to get a suggestion.",
+      "suggestedType": "Suggested type: {{name}}. You can change it before creating.",
+      "typeNotFound": "Suggestion received but type not found. You can still choose manually.",
+      "unavailable": "Suggestion unavailable (AI not configured or temporary error)."
+    },
+    "errors": {
+      "requiredFields": "Please fill in all required fields.",
+      "createFailed": "Failed to create request."
+    }
+  }
+}
