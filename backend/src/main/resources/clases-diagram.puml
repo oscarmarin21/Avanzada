@@ -1,0 +1,154 @@
+@startuml
+title Avanzada - Backend
+
+top to bottom direction
+hide methods
+hide fields
+
+package "com.avanzada" {
+  class AvanzadaApplication
+}
+
+package "config" {
+  class SecurityConfig
+  class CorsPreflightFilter
+  class RailwayDataSourceConfig
+  class RailwayDatabaseUrlProcessor
+  class DataInitializer
+  class InitDataRunner
+  class DevAuthBootstrap
+  class JwtUtil
+  class JwtProperties
+  class AiProperties
+}
+
+package "security" {
+  class JwtAuthenticationFilter
+  class AppUserDetails
+  class AppUserDetailsService
+}
+
+package "controller" {
+  class AuthController
+  class RequestController
+  class AiController
+  class StateController
+  class UserController
+  class ChannelController
+  class RequestTypeController
+  class HealthController
+}
+
+package "service" {
+  interface RequestLifecycleService
+  class RequestLifecycleServiceImpl
+  interface AiService
+  class AiServiceImpl
+}
+
+package "repository" {
+  interface RequestRepository
+  interface UserRepository
+  interface HistoryEntryRepository
+  interface StateRepository
+  interface ChannelRepository
+  interface RequestTypeRepository
+  interface ExampleEntityRepository
+}
+
+package "entity" {
+  class User
+  class RequestType
+  class Channel
+  class State
+  enum Priority
+  class Request
+  class HistoryEntry
+  class ExampleEntity
+}
+
+package "dto" {
+  class LoginRequestDto
+  class LoginResponseDto
+  class AiStatusDto
+  class SuggestRequestDto
+  class SuggestResponseDto
+  class SummaryResponseDto
+  class UserDto
+  class StateDto
+  class ChannelDto
+  class RequestTypeDto
+  class HistoryEntryDto
+  class RequestResponseDto
+  class CreateRequestDto
+  class ClassifyRequestDto
+  class AssignRequestDto
+  class AttendRequestDto
+  class CloseRequestDto
+  class RequestMapper
+}
+
+package "exception" {
+  class GlobalExceptionHandler
+  class RequestNotFoundException
+  class InvalidStateTransitionException
+}
+
+' Relaciones principales (sin saturar el ancho)
+AuthController --> AppUserDetailsService
+AuthController --> JwtUtil
+RequestController --> RequestLifecycleService
+AiController --> AiService
+StateController --> StateRepository
+UserController --> UserRepository
+ChannelController --> ChannelRepository
+RequestTypeController --> RequestTypeRepository
+
+RequestLifecycleServiceImpl ..|> RequestLifecycleService
+AiServiceImpl ..|> AiService
+
+RequestLifecycleServiceImpl --> RequestRepository
+RequestLifecycleServiceImpl --> HistoryEntryRepository
+RequestLifecycleServiceImpl --> StateRepository
+RequestLifecycleServiceImpl --> UserRepository
+RequestLifecycleServiceImpl --> ChannelRepository
+RequestLifecycleServiceImpl --> RequestTypeRepository
+
+RequestRepository --> Request
+UserRepository --> User
+HistoryEntryRepository --> HistoryEntry
+StateRepository --> State
+ChannelRepository --> Channel
+RequestTypeRepository --> RequestType
+ExampleEntityRepository --> ExampleEntity
+
+SecurityConfig --> JwtAuthenticationFilter
+SecurityConfig --> AppUserDetailsService
+JwtAuthenticationFilter --> JwtUtil
+JwtAuthenticationFilter --> AppUserDetailsService
+AppUserDetailsService --> UserRepository
+AppUserDetails --> User
+
+DataInitializer --> StateRepository
+DataInitializer --> ChannelRepository
+DataInitializer --> RequestTypeRepository
+DataInitializer --> UserRepository
+DataInitializer --> RequestRepository
+DataInitializer --> HistoryEntryRepository
+
+InitDataRunner --> DataInitializer
+DevAuthBootstrap --> UserRepository
+
+RequestMapper --> Request
+RequestMapper --> HistoryEntry
+RequestMapper --> RequestResponseDto
+RequestMapper --> HistoryEntryDto
+RequestMapper --> UserDto
+RequestMapper --> StateDto
+RequestMapper --> ChannelDto
+RequestMapper --> RequestTypeDto
+
+GlobalExceptionHandler --> RequestNotFoundException
+GlobalExceptionHandler --> InvalidStateTransitionException
+
+@enduml

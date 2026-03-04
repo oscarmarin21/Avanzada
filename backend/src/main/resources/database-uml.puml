@@ -1,0 +1,80 @@
+@startuml
+
+title Avanzada - Database UML
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+class app_user {
+  +BIGINT id
+  +VARCHAR(255) identifier
+  +VARCHAR(255) name
+  +BOOLEAN active
+  +VARCHAR(50) role
+  +VARCHAR(255) password_hash
+}
+
+class request_type {
+  +BIGINT id
+  +VARCHAR(50) code
+  +VARCHAR(255) name
+  +VARCHAR(500) description
+}
+
+class channel {
+  +BIGINT id
+  +VARCHAR(50) code
+  +VARCHAR(255) name
+}
+
+class state {
+  +BIGINT id
+  +VARCHAR(50) code
+  +VARCHAR(255) name
+  +INT display_order
+}
+
+class request {
+  +BIGINT id
+  +VARCHAR(2000) description
+  +TIMESTAMP registered_at
+  +VARCHAR(20) priority
+  +VARCHAR(500) priority_justification
+  +VARCHAR(2000) closure_observation
+  +TIMESTAMP created_at
+  +TIMESTAMP updated_at
+  --
+  +BIGINT request_type_id
+  +BIGINT channel_id
+  +BIGINT state_id
+  +BIGINT requested_by_id
+  +BIGINT assigned_to_id
+}
+
+class history_entry {
+  +BIGINT id
+  +TIMESTAMP occurred_at
+  +VARCHAR(50) action
+  +VARCHAR(2000) observations
+  --
+  +BIGINT request_id
+  +BIGINT user_id
+}
+
+request "many" -- "1" request_type : request_type_id
+request "many" -- "1" channel : channel_id
+request "many" -- "1" state : state_id
+
+request "many" -- "1" app_user : requested_by_id
+request "many" -- "0..1" app_user : assigned_to_id
+
+history_entry "many" -- "1" request : request_id
+history_entry "many" -- "1" app_user : user_id
+
+request "1" o-- "1" Priority : priority
+
+@enduml
+

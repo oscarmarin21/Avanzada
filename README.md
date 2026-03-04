@@ -59,6 +59,8 @@ Connection: host `localhost`, port `3307`, database `avanzada`, user `avanzada`,
 - **Users:** admin, staff, student (each with a known password for testing).
 - **Sample requests and history:** 5 requests in different lifecycle states, with history entries (only when the request table is empty).
 
+**Database schema UML** (PlantUML) is available in `backend/src/main/resources/database-uml.puml`.
+
 ```bash
 cd backend
 mvn spring-boot:run -Dspring-boot.run.arguments=--init-data
@@ -188,3 +190,8 @@ Avanzada/
 ```
 
 For more detail (package structure, conventions, validation) see **AGENTS.md** in the project root. For frontend styling and design patterns see **frontend/DESIGN.md**.
+
+## Architecture diagrams
+
+- **Database UML** (ER-style, in PlantUML): `backend/src/main/resources/database-uml.puml`.
+- **Backend class diagram** (controllers, services, repositories, entities; in PlantUML): `backend/src/main/resources/clases-diagram.puml`.

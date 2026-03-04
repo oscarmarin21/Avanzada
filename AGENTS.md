@@ -75,6 +75,7 @@ Inside Docker, the backend connects to MariaDB at `mariadb:3306`. The frontend i
   - JPA entities in `entity/`, repositories in `repository/`.  
   - Validation: `spring-boot-starter-validation`; use DTOs and `@Valid` where applicable.  
   - See `.cursor/rules/` for Java/Spring code standards.
+  - **Architecture diagrams** (backend, PlantUML): database schema in `backend/src/main/resources/database-uml.puml` and class diagram in `backend/src/main/resources/clases-diagram.puml`.
 
 - **Frontend (Angular)**  
   - Project: `frontend`, component prefix `app`.  
