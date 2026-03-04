@@ -1,0 +1,1118 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Avanzada API",
+    "description": "REST API for managing support requests (students, staff, admin).",
+    "contact": {
+      "name": "Avanzada"
+    },
+    "license": {
+      "name": "MIT"
+    },
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:9000",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Request types",
+      "description": "Reference data: request types."
+    },
+    {
+      "name": "Users",
+      "description": "Reference data: users that can be requesters or assignees."
+    },
+    {
+      "name": "Authentication",
+      "description": "Authentication and JWT token management."
+    },
+    {
+      "name": "Requests",
+      "description": "Operations to create, view and manage support requests."
+    },
+    {
+      "name": "Channels",
+      "description": "Reference data: channels through which requests are received."
+    },
+    {
+      "name": "AI",
+      "description": "Optional AI helpers for summaries and suggestions."
+    },
+    {
+      "name": "Health",
+      "description": "Health check endpoint."
+    },
+    {
+      "name": "States",
+      "description": "Reference data: request states."
+    }
+  ],
+  "paths": {
+    "/api/requests": {
+      "get": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "List requests",
+        "description": "Lists requests applying optional filters. Students only see their own requests.",
+        "operationId": "listRequests",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Requests found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RequestResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Create a new request",
+        "description": "Creates a new support request. Students can only create requests for themselves; admins may specify another requester.",
+        "operationId": "createRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Request created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "400": {
+            "description": "Validation error or invalid data"
+          },
+          "403": {
+            "description": "User not allowed to create request"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/close": {
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Close a request",
+        "description": "Closes a request with a closure observation. Only ADMIN can close.",
+        "operationId": "close",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "409": {
+            "description": "Invalid state transition"
+          },
+          "200": {
+            "description": "Request closed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid data"
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "User not allowed to close"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/classify": {
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Classify a request",
+        "description": "Sets type and priority of a request. Only STAFF and ADMIN can classify.",
+        "operationId": "classify",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassifyRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "409": {
+            "description": "Invalid state transition"
+          },
+          "200": {
+            "description": "Request classified",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid data"
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "User not allowed to classify"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/attend": {
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Mark request as attended",
+        "description": "Marks a request as attended, with optional observations. Only STAFF and ADMIN can attend.",
+        "operationId": "attend",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "409": {
+            "description": "Invalid state transition"
+          },
+          "200": {
+            "description": "Request attended",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not allowed to attend"
+          },
+          "400": {
+            "description": "Validation error or invalid data"
+          },
+          "404": {
+            "description": "Request not found"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/assign": {
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Assign a request to a staff member",
+        "description": "Assigns a request to a specific staff user. Only STAFF and ADMIN can assign.",
+        "operationId": "assign",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "409": {
+            "description": "Invalid state transition"
+          },
+          "200": {
+            "description": "Request assigned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid data"
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "User not allowed to assign"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Authenticate user and return JWT token",
+        "description": "Authenticates a user using identifier and password, returning a JWT token to be used in subsequent requests.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Validation error"
+          },
+          "200": {
+            "description": "User authenticated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/ai/suggest": {
+      "post": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Suggest type and priority using AI",
+        "description": "Suggests request type and priority from a free-text description. Suggestions are never auto-applied.",
+        "operationId": "suggest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Suggestion generated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Simple health check used by Docker and external monitoring.",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "List users",
+        "description": "Returns all users. Used mainly to select assignees or requesters.",
+        "operationId": "listUsers",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Users found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/states": {
+      "get": {
+        "tags": [
+          "States"
+        ],
+        "summary": "List states",
+        "description": "Returns all request states ordered by display order.",
+        "operationId": "listStates",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "States found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/requests/{id}": {
+      "get": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Get request by id",
+        "description": "Returns a single request by id. Students can only access their own requests.",
+        "operationId": "getRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Request found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "Student trying to access another user's request"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/summary": {
+      "get": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Get request summary (AI or fallback)",
+        "description": "Returns a textual summary of the request and its history using AI when available, or a fallback summary otherwise.",
+        "operationId": "getSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Summary generated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "Student trying to access another user's request"
+          }
+        }
+      }
+    },
+    "/api/requests/{id}/history": {
+      "get": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Get request history",
+        "description": "Returns the history entries for a request. Students can only access the history of their own requests.",
+        "operationId": "getHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "History entries found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HistoryEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request not found"
+          },
+          "403": {
+            "description": "Student trying to access another user's request"
+          }
+        }
+      }
+    },
+    "/api/request-types": {
+      "get": {
+        "tags": [
+          "Request types"
+        ],
+        "summary": "List request types",
+        "description": "Returns all request types that can be used when registering or classifying requests.",
+        "operationId": "listRequestTypes",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Request types found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RequestTypeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/channels": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "List channels",
+        "description": "Returns all channels (e.g. WEB, EMAIL) that can be used when registering requests.",
+        "operationId": "listChannels",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "200": {
+            "description": "Channels found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/status": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Get AI availability",
+        "description": "Returns whether AI features are enabled and configured. Frontend can hide AI features when not available.",
+        "operationId": "status",
+        "responses": {
+          "200": {
+            "description": "Status returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateRequestDto": {
+        "required": [
+          "channelId",
+          "description",
+          "requestTypeId",
+          "requestedById"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "requestTypeId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "channelId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requestedById": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "registeredAt": {
+            "type": "string"
+          }
+        }
+      },
+      "RequestResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": {
+            "type": "string"
+          },
+          "registeredAt": {
+            "type": "string"
+          },
+          "requestTypeId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requestTypeCode": {
+            "type": "string"
+          },
+          "requestTypeName": {
+            "type": "string"
+          },
+          "channelId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "channelCode": {
+            "type": "string"
+          },
+          "channelName": {
+            "type": "string"
+          },
+          "stateId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "stateName": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "priorityJustification": {
+            "type": "string"
+          },
+          "requestedById": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requestedByIdentifier": {
+            "type": "string"
+          },
+          "requestedByName": {
+            "type": "string"
+          },
+          "assignedToId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "assignedToIdentifier": {
+            "type": "string"
+          },
+          "assignedToName": {
+            "type": "string"
+          },
+          "closureObservation": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "CloseRequestDto": {
+        "required": [
+          "closureObservation"
+        ],
+        "type": "object",
+        "properties": {
+          "closureObservation": {
+            "type": "string"
+          }
+        }
+      },
+      "ClassifyRequestDto": {
+        "required": [
+          "priority",
+          "requestTypeId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestTypeId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "priorityJustification": {
+            "type": "string"
+          }
+        }
+      },
+      "AttendRequestDto": {
+        "type": "object",
+        "properties": {
+          "observations": {
+            "type": "string"
+          }
+        }
+      },
+      "AssignRequestDto": {
+        "required": [
+          "assignedToId"
+        ],
+        "type": "object",
+        "properties": {
+          "assignedToId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "LoginRequestDto": {
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          }
+        }
+      },
+      "SuggestRequestDto": {
+        "required": [
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "SuggestResponseDto": {
+        "type": "object",
+        "properties": {
+          "suggestedRequestTypeCode": {
+            "type": "string"
+          },
+          "suggestedPriority": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string"
+          },
+          "fromAi": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HistoryEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requestId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userIdentifier": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "string"
+          }
+        }
+      },
+      "RequestTypeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "ChannelDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AiStatusDto": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "JWT Bearer token obtained via /api/auth/login",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

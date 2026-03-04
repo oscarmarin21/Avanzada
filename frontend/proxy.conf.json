@@ -3,5 +3,15 @@
     "target": "http://localhost:9000",
     "secure": false,
     "changeOrigin": true
+  },
+  "/swagger-ui": {
+    "target": "http://localhost:9000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/v3": {
+    "target": "http://localhost:9000",
+    "secure": false,
+    "changeOrigin": true
   }
 }

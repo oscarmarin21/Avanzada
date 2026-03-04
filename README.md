@@ -98,6 +98,13 @@ mvn spring-boot:run
 
 Default configuration in `application.yml` uses `localhost:3307`. For tests: `mvn verify`.
 
+**API documentation (Swagger / OpenAPI):**
+
+- When the backend is running, Swagger UI is available at `http://localhost:9000/swagger-ui/index.html`.
+- If the frontend dev server is also running (port 4000), you can open Swagger at **`http://localhost:4000/swagger-ui/index.html`** so the browser uses the same origin and the proxy forwards requests to the backend.
+- The raw OpenAPI document (JSON) is available at `http://localhost:9000/v3/api-docs`.
+- Most `/api/**` endpoints require a JWT Bearer token: first call `POST /api/auth/login`, then use the token in Swagger UI via the **Authorize** button using the `Bearer <token>` format.
+
 ### Frontend
 
 ```bash
