@@ -12,7 +12,11 @@ import java.util.List;
  */
 public interface RequestLifecycleService {
 
-    Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt);
+    Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, Long performedById, String registeredAt);
+
+    default Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt) {
+        return createRequest(description, requestTypeId, channelId, requestedById, requestedById, registeredAt);
+    }
 
     List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo, Long requestedById);
 

@@ -15,8 +15,10 @@ public class ClassifyRequestDto {
     @NotNull(message = "requestTypeId is required")
     private Long requestTypeId;
 
-    @NotNull(message = "priority is required")
-    private String priority; // LOW, MEDIUM, HIGH
+    /**
+     * Legacy client hint kept for compatibility. The backend ignores it and derives the final priority.
+     */
+    private String priority;
 
     private String priorityJustification;
 }

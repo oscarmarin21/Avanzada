@@ -6,12 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 class RequestRepositoryTest {
 
 
@@ -32,6 +33,9 @@ class RequestRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     private RequestType requestType;
     private Channel channel;
@@ -132,5 +136,44 @@ class RequestRepositoryTest {
         List<Request> byRequestedBy = requestRepository.findByFilters(null, null, null, null, requester.getId());
         assertThat(byRequestedBy).hasSize(2);
         assertThat(byRequestedBy).allMatch(r -> r.getRequestedBy().getId().equals(requester.getId()));
+    }
+
+    @Test
+    void findByFilters_fetchesRequestAssociationsInOneQuery() {
+        requestRepository.save(Request.builder()
+                .description("R1")
+                .registeredAt(Instant.now())
+                .requestType(requestType)
+                .channel(channel)
+                .state(stateRegistrada)
+                .requestedBy(requester)
+                .build());
+        requestRepository.save(Request.builder()
+                .description("R2")
+                .registeredAt(Instant.now())
+                .requestType(requestType)
+                .channel(channel)
+                .state(stateClasificada)
+                .priority(Priority.HIGH)
+                .requestedBy(requester)
+                .assignedTo(assignee)
+                .build());
+        entityManager.flush();
+        entityManager.clear();
+
+        var statistics = entityManagerFactory.unwrap(org.hibernate.SessionFactory.class).getStatistics();
+        statistics.clear();
+
+        List<Request> results = requestRepository.findByFilters(null, null, null, null, null);
+
+        assertThat(results).hasSize(2);
+        assertThat(statistics.getPrepareStatementCount()).isEqualTo(1L);
+        results.forEach(request -> {
+            assertThat(request.getRequestType().getCode()).isEqualTo("REG_ASIG");
+            assertThat(request.getChannel().getCode()).isEqualTo("CSU");
+            assertThat(request.getState().getCode()).isIn("REGISTRADA", "CLASIFICADA");
+            assertThat(request.getRequestedBy().getIdentifier()).isEqualTo("req@test.com");
+        });
+        assertThat(statistics.getPrepareStatementCount()).isEqualTo(1L);
     }
 }

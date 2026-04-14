@@ -50,16 +50,19 @@ class RequestLifecycleServiceTest {
                 .identifier("requester@test.com")
                 .name("Requester")
                 .active(true)
+                .role("STUDENT")
                 .build());
         assignee = userRepository.save(User.builder()
                 .identifier("assignee@test.com")
                 .name("Assignee")
                 .active(true)
+                .role("STAFF")
                 .build());
         otherUser = userRepository.save(User.builder()
                 .identifier("other@test.com")
                 .name("Other")
                 .active(true)
+                .role("ADMIN")
                 .build());
     }
 
@@ -84,18 +87,19 @@ class RequestLifecycleServiceTest {
 
     @Test
     void fullLifecycle_registersHistoryAtEachStep() {
-        RequestType type = requestTypeRepository.save(RequestType.builder().code("REG_ASIG").name("Registro").build());
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("HOMOLOG").name("Homologacion").build());
         Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
 
-        Request created = lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Solicitud de homologacion con fecha limite de matricula.", type.getId(), channel.getId(), requester.getId(), null);
         assertThat(created.getState().getCode()).isEqualTo("REGISTRADA");
         assertThat(historyEntries(created.getId())).hasSize(1);
         assertThat(historyEntries(created.getId()).get(0).getAction()).isEqualTo("REGISTERED");
 
-        Request classified = lifecycleService.classify(created.getId(), type.getId(), "HIGH", "Urgent", otherUser.getId());
+        Request classified = lifecycleService.classify(created.getId(), type.getId(), "LOW", null, otherUser.getId());
         assertThat(classified.getState().getCode()).isEqualTo("CLASIFICADA");
         assertThat(classified.getPriority()).isEqualTo(Priority.HIGH);
-        assertThat(classified.getPriorityJustification()).isEqualTo("Urgent");
+        assertThat(classified.getPriorityJustification()).contains("request type HOMOLOG");
+        assertThat(classified.getPriorityJustification()).contains("deadline signal");
         assertThat(historyEntries(created.getId())).hasSize(2);
         assertThat(historyEntries(created.getId()).get(0).getAction()).isEqualTo("CLASSIFIED");
 
@@ -118,6 +122,25 @@ class RequestLifecycleServiceTest {
     }
 
     @Test
+    void createRequest_recordsAuthenticatedActorSeparatelyFromRequester() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("HOMOLOG").name("Homologacion").build());
+        Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
+
+        Request created = lifecycleService.createRequest(
+                "Solicitud creada por admin para otro usuario.",
+                type.getId(),
+                channel.getId(),
+                requester.getId(),
+                otherUser.getId(),
+                null);
+
+        assertThat(created.getRequestedBy().getId()).isEqualTo(requester.getId());
+        assertThat(historyEntries(created.getId())).hasSize(1);
+        assertThat(historyEntries(created.getId()).get(0).getAction()).isEqualTo("REGISTERED");
+        assertThat(historyEntries(created.getId()).get(0).getUser().getId()).isEqualTo(otherUser.getId());
+    }
+
+    @Test
     void classify_fromNonRegistrada_throwsInvalidStateTransition() {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
@@ -132,7 +155,12 @@ class RequestLifecycleServiceTest {
     @Test
     void assign_toInactiveUser_throws() {
         ensureStates();
-        User inactive = userRepository.save(User.builder().identifier("inactive@test.com").name("Inactive").active(false).build());
+        User inactive = userRepository.save(User.builder()
+                .identifier("inactive@test.com")
+                .name("Inactive")
+                .active(false)
+                .role("STAFF")
+                .build());
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
         Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
@@ -141,6 +169,49 @@ class RequestLifecycleServiceTest {
         assertThatThrownBy(() -> lifecycleService.assign(created.getId(), inactive.getId(), otherUser.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("inactive");
+    }
+
+    @Test
+    void assign_toActiveUserWithoutAuthorizedRole_throws() {
+        ensureStates();
+        User student = userRepository.save(User.builder()
+                .identifier("student@test.com")
+                .name("Student")
+                .active(true)
+                .role("STUDENT")
+                .build());
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
+        Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
+
+        assertThatThrownBy(() -> lifecycleService.assign(created.getId(), student.getId(), otherUser.getId()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("authorized role");
+    }
+
+    @Test
+    void createRequest_blankDescription_throws() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
+        Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
+
+        assertThatThrownBy(() -> lifecycleService.createRequest("   ", type.getId(), channel.getId(), requester.getId(), null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Description is required");
+    }
+
+    @Test
+    void listByFilters_invalidState_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> lifecycleService.listByFilters("INVALID_STATE", null, null, null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid state filter");
+    }
+
+    @Test
+    void listByFilters_invalidPriority_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> lifecycleService.listByFilters(null, null, "NOT_A_PRIORITY", null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid priority filter");
     }
 
     @Test
