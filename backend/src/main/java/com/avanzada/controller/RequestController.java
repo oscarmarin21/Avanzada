@@ -94,6 +94,7 @@ public class RequestController {
                 dto.getRequestTypeId(),
                 dto.getChannelId(),
                 requestedById,
+                currentId,
                 dto.getRegisteredAt());
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toRequestResponseDto(request));
     }

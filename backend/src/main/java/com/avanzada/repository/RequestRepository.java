@@ -13,7 +13,13 @@ import java.util.List;
  */
 public interface RequestRepository extends JpaRepository<Request, Long> {
 
-    @Query("SELECT r FROM Request r WHERE (:stateId IS NULL OR r.state.id = :stateId) " +
+    @Query("SELECT DISTINCT r FROM Request r " +
+            "JOIN FETCH r.requestType " +
+            "JOIN FETCH r.channel " +
+            "JOIN FETCH r.state " +
+            "JOIN FETCH r.requestedBy " +
+            "LEFT JOIN FETCH r.assignedTo " +
+            "WHERE (:stateId IS NULL OR r.state.id = :stateId) " +
             "AND (:requestTypeId IS NULL OR r.requestType.id = :requestTypeId) " +
             "AND (:priority IS NULL OR r.priority = :priority) " +
             "AND (:assignedToId IS NULL OR r.assignedTo.id = :assignedToId) " +

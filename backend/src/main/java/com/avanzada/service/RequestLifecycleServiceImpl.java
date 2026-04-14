@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 import java.util.List;
 
 /**
@@ -31,10 +32,12 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
     private final StateRepository stateRepository;
     private final UserRepository userRepository;
     private final HistoryEntryRepository historyEntryRepository;
+    private final RequestPriorityRuleEngine requestPriorityRuleEngine;
 
     @Override
     @Transactional
-    public Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt) {
+    public Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, Long performedById, String registeredAt) {
+        String normalizedDescription = normalizeDescription(description);
         RequestType requestType = requestTypeRepository.findById(requestTypeId)
                 .orElseThrow(() -> new IllegalArgumentException("Request type not found: " + requestTypeId));
         Channel channel = channelRepository.findById(channelId)
@@ -49,7 +52,7 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
             now = Instant.now();
         }
         Request request = Request.builder()
-                .description(description)
+                .description(normalizedDescription)
                 .registeredAt(now)
                 .requestType(requestType)
                 .channel(channel)
@@ -57,17 +60,17 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
                 .requestedBy(requestedBy)
                 .build();
         request = requestRepository.save(request);
-        appendHistory(request, "REGISTERED", requestedBy, "Request registered");
+        Long actorId = performedById != null ? performedById : requestedById;
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + actorId));
+        appendHistory(request, "REGISTERED", actor, "Request registered");
         return request;
     }
 
     @Override
     public List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo, Long requestedById) {
-        Long stateId = null;
-        if (state != null && !state.isBlank()) {
-            stateId = stateRepository.findByCode(state.trim()).map(State::getId).orElse(null);
-        }
-        Priority priorityEnum = parsePriorityOrNull(priority);
+        Long stateId = resolveStateIdOrThrow(state);
+        Priority priorityEnum = resolvePriorityOrThrow(priority);
         return requestRepository.findByFilters(stateId, requestType, priorityEnum, assignedTo, requestedById);
     }
 
@@ -78,16 +81,11 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
     }
 
     /**
-     * Classify request and set priority; transition REGISTRADA → CLASIFICADA (RF-02, RF-03, RF-04).
+     * Classify request and derive priority from backend rules; transition REGISTRADA → CLASIFICADA (RF-02, RF-03, RF-04).
      */
     @Override
     @Transactional
     public Request classify(Long requestId, Long requestTypeId, String priority, String priorityJustification, Long userId) {
-        Priority priorityEnum = parsePriorityRequired(priority);
-        return classify(requestId, requestTypeId, priorityEnum, priorityJustification, userId);
-    }
-
-    private Request classify(Long requestId, Long requestTypeId, Priority priority, String priorityJustification, Long userId) {
         Request request = findRequestOrThrow(requestId);
         requireState(request, REGISTRADA, "classify");
 
@@ -99,13 +97,14 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
         State clasificada = stateRepository.findByCode(CLASIFICADA)
                 .orElseThrow(() -> new IllegalStateException("State CLASIFICADA not found"));
 
+        // The client-supplied priority is ignored; the backend rule engine decides the final value.
+        RequestPriorityRuleEngine.PriorityDecision decision = requestPriorityRuleEngine.evaluate(request, requestType);
         request.setRequestType(requestType);
-        request.setPriority(priority);
-        request.setPriorityJustification(priorityJustification != null ? priorityJustification : "");
+        request.setPriority(decision.priority());
+        request.setPriorityJustification(decision.justification());
         request.setState(clasificada);
         request = requestRepository.save(request);
-        appendHistory(request, "CLASSIFIED", user,
-                "Type: " + requestType.getCode() + ", Priority: " + priority + (priorityJustification != null && !priorityJustification.isBlank() ? ". " + priorityJustification : ""));
+        appendHistory(request, "CLASSIFIED", user, "Type: " + requestType.getCode() + ". " + decision.justification());
         return request;
     }
 
@@ -122,6 +121,9 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + assignedToId));
         if (Boolean.FALSE.equals(assignee.getActive())) {
             throw new IllegalArgumentException("Cannot assign to inactive user: " + assignedToId);
+        }
+        if (!isAuthorizedResponsible(assignee)) {
+            throw new IllegalArgumentException("Cannot assign to user without authorized role: " + assignedToId);
         }
         User performingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
@@ -183,18 +185,7 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
 
     @Override
     public Priority suggestPriorityByRequestType(RequestType requestType) {
-        if (requestType == null || requestType.getCode() == null) {
-            return Priority.MEDIUM;
-        }
-        switch (requestType.getCode().toUpperCase()) {
-            case "HOMOLOG":
-            case "CUPOS":
-                return Priority.HIGH;
-            case "CONSULTA":
-                return Priority.LOW;
-            default:
-                return Priority.MEDIUM;
-        }
+        return requestPriorityRuleEngine.basePriorityFor(requestType);
     }
 
     @Override
@@ -234,23 +225,39 @@ public class RequestLifecycleServiceImpl implements RequestLifecycleService {
         }
     }
 
-    private static Priority parsePriorityRequired(String value) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("priority is required");
+    private static String normalizeDescription(String description) {
+        if (description == null) {
+            throw new IllegalArgumentException("Description is required");
         }
+        String normalizedDescription = description.trim();
+        if (normalizedDescription.isEmpty()) {
+            throw new IllegalArgumentException("Description is required");
+        }
+        return normalizedDescription;
+    }
+
+    private Long resolveStateIdOrThrow(String value) {
+        if (value == null || value.isBlank()) return null;
+        String normalizedState = value.trim().toUpperCase(Locale.ROOT);
+        return stateRepository.findByCode(normalizedState)
+                .map(State::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid state filter: " + value));
+    }
+
+    private static Priority resolvePriorityOrThrow(String value) {
+        if (value == null || value.isBlank()) return null;
         try {
-            return Priority.valueOf(value.trim().toUpperCase());
+            return Priority.valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid priority: " + value + ". Must be LOW, MEDIUM, or HIGH");
+            throw new IllegalArgumentException("Invalid priority filter: " + value);
         }
     }
 
-    private static Priority parsePriorityOrNull(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return Priority.valueOf(value.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
+    private static boolean isAuthorizedResponsible(User user) {
+        if (user == null || user.getRole() == null) {
+            return false;
         }
+        String role = user.getRole().trim();
+        return "STAFF".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role);
     }
 }
