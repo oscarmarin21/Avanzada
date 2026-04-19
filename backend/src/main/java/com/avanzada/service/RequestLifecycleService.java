@@ -11,11 +11,10 @@ import java.util.List;
  * Request lifecycle (state machine), prioritization, assignment, and history (RF-03–RF-08).
  */
 public interface RequestLifecycleService {
+    Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, Long performedById, String registeredAt, String idempotencyKey);
 
-    Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, Long performedById, String registeredAt);
-
-    default Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt) {
-        return createRequest(description, requestTypeId, channelId, requestedById, requestedById, registeredAt);
+    default Request createRequest(String description, Long requestTypeId, Long channelId, Long requestedById, String registeredAt, String idempotencyKey) {
+        return createRequest(description, requestTypeId, channelId, requestedById, requestedById, registeredAt, idempotencyKey);
     }
 
     List<Request> listByFilters(String state, Long requestType, String priority, Long assignedTo, Long requestedById);

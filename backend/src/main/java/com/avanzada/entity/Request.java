@@ -6,7 +6,12 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "request")
+@Table(
+        name = "request",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_request_requested_by_idempotency_key", columnNames = {"requested_by_id", "idempotency_key"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -53,6 +58,13 @@ public class Request {
 
     @Column(name = "closure_observation", length = 2000)
     private String closureObservation;
+
+    @Column(name = "idempotency_key", length = 100)
+    private String idempotencyKey;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

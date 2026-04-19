@@ -7,11 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for Request with custom queries for RF-07 (filter by state, type, priority, responsible).
  */
 public interface RequestRepository extends JpaRepository<Request, Long> {
+    Optional<Request> findByRequestedBy_IdAndIdempotencyKey(Long requestedById, String idempotencyKey);
 
     @Query("SELECT DISTINCT r FROM Request r " +
             "JOIN FETCH r.requestType " +

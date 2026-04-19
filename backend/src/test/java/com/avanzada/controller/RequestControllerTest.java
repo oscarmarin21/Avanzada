@@ -62,14 +62,14 @@ class RequestControllerTest {
                 .requestedById(99L)
                 .build();
 
-        when(lifecycleService.createRequest("Need help", 10L, 20L, 99L, 7L, null))
+        when(lifecycleService.createRequest("Need help", 10L, 20L, 99L, 7L, null, "req-123"))
                 .thenReturn(Request.builder().id(1L).build());
         when(mapper.toRequestResponseDto(any(Request.class)))
                 .thenReturn(RequestResponseDto.builder().id(1L).build());
 
-        var response = controller.createRequest(dto);
+        var response = controller.createRequest(dto, "req-123");
 
         assertThat(response.getStatusCode().value()).isEqualTo(201);
-        verify(lifecycleService).createRequest("Need help", 10L, 20L, 99L, 7L, null);
+        verify(lifecycleService).createRequest("Need help", 10L, 20L, 99L, 7L, null, "req-123");
     }
 }

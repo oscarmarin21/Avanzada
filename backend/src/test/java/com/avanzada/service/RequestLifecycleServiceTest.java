@@ -1,9 +1,19 @@
 package com.avanzada.service;
 
-import com.avanzada.entity.*;
+import com.avanzada.entity.Channel;
+import com.avanzada.entity.HistoryEntry;
+import com.avanzada.entity.Priority;
+import com.avanzada.entity.Request;
+import com.avanzada.entity.RequestType;
+import com.avanzada.entity.State;
+import com.avanzada.entity.User;
 import com.avanzada.exception.InvalidStateTransitionException;
 import com.avanzada.exception.RequestNotFoundException;
-import com.avanzada.repository.*;
+import com.avanzada.repository.ChannelRepository;
+import com.avanzada.repository.HistoryEntryRepository;
+import com.avanzada.repository.RequestTypeRepository;
+import com.avanzada.repository.StateRepository;
+import com.avanzada.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +100,13 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("HOMOLOG").name("Homologacion").build());
         Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
 
-        Request created = lifecycleService.createRequest("Solicitud de homologacion con fecha limite de matricula.", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest(
+                "Solicitud de homologacion con fecha limite de matricula.",
+                type.getId(),
+                channel.getId(),
+                requester.getId(),
+                null,
+                "key-full-lifecycle");
         assertThat(created.getState().getCode()).isEqualTo("REGISTRADA");
         assertThat(historyEntries(created.getId())).hasSize(1);
         assertThat(historyEntries(created.getId()).get(0).getAction()).isEqualTo("REGISTERED");
@@ -132,7 +148,8 @@ class RequestLifecycleServiceTest {
                 channel.getId(),
                 requester.getId(),
                 otherUser.getId(),
-                null);
+                null,
+                "key-admin-registers-for-user");
 
         assertThat(created.getRequestedBy().getId()).isEqualTo(requester.getId());
         assertThat(historyEntries(created.getId())).hasSize(1);
@@ -143,11 +160,12 @@ class RequestLifecycleServiceTest {
     @Test
     void classify_fromNonRegistrada_throwsInvalidStateTransition() {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
+        RequestType otherType = requestTypeRepository.save(RequestType.builder().code("OTHER").name("Other").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-classify-invalid-state");
         lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
 
-        assertThatThrownBy(() -> lifecycleService.classify(created.getId(), type.getId(), "LOW", null, otherUser.getId()))
+        assertThatThrownBy(() -> lifecycleService.classify(created.getId(), otherType.getId(), "LOW", null, otherUser.getId()))
                 .isInstanceOf(InvalidStateTransitionException.class)
                 .hasMessageContaining("expected REGISTRADA");
     }
@@ -163,7 +181,7 @@ class RequestLifecycleServiceTest {
                 .build());
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-assign-inactive");
         lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
 
         assertThatThrownBy(() -> lifecycleService.assign(created.getId(), inactive.getId(), otherUser.getId()))
@@ -173,7 +191,6 @@ class RequestLifecycleServiceTest {
 
     @Test
     void assign_toActiveUserWithoutAuthorizedRole_throws() {
-        ensureStates();
         User student = userRepository.save(User.builder()
                 .identifier("student@test.com")
                 .name("Student")
@@ -182,7 +199,7 @@ class RequestLifecycleServiceTest {
                 .build());
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-unauthorized-assignee");
         lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
 
         assertThatThrownBy(() -> lifecycleService.assign(created.getId(), student.getId(), otherUser.getId()))
@@ -195,7 +212,7 @@ class RequestLifecycleServiceTest {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
 
-        assertThatThrownBy(() -> lifecycleService.createRequest("   ", type.getId(), channel.getId(), requester.getId(), null))
+        assertThatThrownBy(() -> lifecycleService.createRequest("   ", type.getId(), channel.getId(), requester.getId(), null, "key-blank-description"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Description is required");
     }
@@ -218,7 +235,7 @@ class RequestLifecycleServiceTest {
     void close_withoutObservation_throws() {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-close-without-observation");
         lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
         lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
         lifecycleService.attend(created.getId(), assignee.getId(), null);
@@ -234,7 +251,7 @@ class RequestLifecycleServiceTest {
     void close_fromNonAtendida_throwsInvalidStateTransition() {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-close-invalid-state");
 
         assertThatThrownBy(() -> lifecycleService.close(created.getId(), "obs", otherUser.getId()))
                 .isInstanceOf(InvalidStateTransitionException.class)
@@ -245,7 +262,7 @@ class RequestLifecycleServiceTest {
     void closedRequest_cannotBeModified() {
         RequestType type = requestTypeRepository.save(RequestType.builder().code("T").name("T").build());
         Channel channel = channelRepository.save(Channel.builder().code("C").name("C").build());
-        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null);
+        Request created = lifecycleService.createRequest("Desc", type.getId(), channel.getId(), requester.getId(), null, "key-closed-cannot-modify");
         lifecycleService.classify(created.getId(), type.getId(), "MEDIUM", null, otherUser.getId());
         lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
         lifecycleService.attend(created.getId(), assignee.getId(), null);
@@ -271,6 +288,69 @@ class RequestLifecycleServiceTest {
         assertThatThrownBy(() -> lifecycleService.findRequestOrThrow(999999L))
                 .isInstanceOf(RequestNotFoundException.class)
                 .hasMessageContaining("999999");
+    }
+
+    @Test
+    void createRequest_withoutIdempotencyKey_throws() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("REG_ASIG").name("Registro").build());
+        Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
+
+        assertThatThrownBy(() -> lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Idempotency-Key");
+    }
+
+    @Test
+    void createRequest_withSameIdempotencyKey_returnsExistingRequestWithoutDuplicatingHistory() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("REG_ASIG").name("Registro").build());
+        Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
+
+        Request first = lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null, "request-123");
+        Request replay = lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null, "request-123");
+
+        assertThat(replay.getId()).isEqualTo(first.getId());
+        assertThat(historyEntries(first.getId())).hasSize(1);
+    }
+
+    @Test
+    void createRequest_withSameIdempotencyKeyButDifferentPayload_throws() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("REG_ASIG").name("Registro").build());
+        RequestType otherType = requestTypeRepository.save(RequestType.builder().code("HOMOLOG").name("Homologacion").build());
+        Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
+
+        lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null, "request-789");
+
+        assertThatThrownBy(() -> lifecycleService.createRequest("Another request", otherType.getId(), channel.getId(), requester.getId(), null, "request-789"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("different request payload");
+    }
+
+    @Test
+    void repeatedLifecycleCalls_withSamePayload_areIdempotent() {
+        RequestType type = requestTypeRepository.save(RequestType.builder().code("REG_ASIG").name("Registro").build());
+        Channel channel = channelRepository.save(Channel.builder().code("CSU").name("CSU").build());
+
+        Request created = lifecycleService.createRequest("Need to register", type.getId(), channel.getId(), requester.getId(), null, "request-456");
+
+        Request classified = lifecycleService.classify(created.getId(), type.getId(), "HIGH", "Urgent", otherUser.getId());
+        Request classifiedReplay = lifecycleService.classify(created.getId(), type.getId(), "HIGH", "Urgent", otherUser.getId());
+        assertThat(classifiedReplay.getId()).isEqualTo(classified.getId());
+        assertThat(historyEntries(created.getId())).hasSize(2);
+
+        Request assigned = lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
+        Request assignedReplay = lifecycleService.assign(created.getId(), assignee.getId(), otherUser.getId());
+        assertThat(assignedReplay.getId()).isEqualTo(assigned.getId());
+        assertThat(historyEntries(created.getId())).hasSize(3);
+
+        Request attended = lifecycleService.attend(created.getId(), assignee.getId(), "Resolved");
+        Request attendedReplay = lifecycleService.attend(created.getId(), assignee.getId(), "Resolved");
+        assertThat(attendedReplay.getId()).isEqualTo(attended.getId());
+        assertThat(historyEntries(created.getId())).hasSize(4);
+
+        Request closed = lifecycleService.close(created.getId(), "Closed after verification", otherUser.getId());
+        Request closeReplay = lifecycleService.close(created.getId(), "Closed after verification", otherUser.getId());
+        assertThat(closeReplay.getId()).isEqualTo(closed.getId());
+        assertThat(historyEntries(created.getId())).hasSize(5);
     }
 
     private List<HistoryEntry> historyEntries(Long requestId) {
