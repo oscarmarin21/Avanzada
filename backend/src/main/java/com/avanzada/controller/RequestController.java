@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -80,7 +81,12 @@ public class RequestController {
             @ApiResponse(responseCode = "403", description = "User not allowed to create request",
                     content = @Content)
     })
-    public ResponseEntity<RequestResponseDto> createRequest(@Valid @RequestBody CreateRequestDto dto) {
+    public ResponseEntity<RequestResponseDto> createRequest(
+            @Valid @RequestBody CreateRequestDto dto,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
         Long currentId = currentUserId();
         if (currentId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -94,7 +100,8 @@ public class RequestController {
                 dto.getRequestTypeId(),
                 dto.getChannelId(),
                 requestedById,
-                dto.getRegisteredAt());
+                dto.getRegisteredAt(),
+                idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toRequestResponseDto(request));
     }
 
