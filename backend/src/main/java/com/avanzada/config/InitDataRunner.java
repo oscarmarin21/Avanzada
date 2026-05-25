@@ -1,5 +1,6 @@
 package com.avanzada.config;
 
+import com.avanzada.repository.StateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -10,9 +11,11 @@ import org.springframework.util.ObjectUtils;
 
 
 /**
- * When the application is started with {@code --init-data}, runs the data initializer and then exits.
- * Use: {@code mvn spring-boot:run -Dspring-boot.run.arguments=--init-data} or
- * {@code java -jar backend.jar --init-data}.
+ * Runs the data initializer in two modes:
+ * <ul>
+ *   <li>{@code --init-data} argument: seeds data then exits the process.</li>
+ *   <li>Auto-init: if the state table is empty (fresh database), seeds data and continues normally.</li>
+ * </ul>
  */
 @Component
 @RequiredArgsConstructor
@@ -22,20 +25,22 @@ public class InitDataRunner implements ApplicationRunner, Ordered {
     private static final String INIT_DATA_ARG = "init-data";
 
     private final DataInitializer dataInitializer;
+    private final StateRepository stateRepository;
 
     @Override
     public void run(ApplicationArguments args) {
-        if (args.getOptionNames().contains(INIT_DATA_ARG)
-                || (!ObjectUtils.isEmpty(args.getNonOptionArgs()) && args.getNonOptionArgs().contains(INIT_DATA_ARG))) {
-            runInitAndExit();
-        }
-    }
+        boolean explicit = args.getOptionNames().contains(INIT_DATA_ARG)
+                || (!ObjectUtils.isEmpty(args.getNonOptionArgs()) && args.getNonOptionArgs().contains(INIT_DATA_ARG));
 
-    private void runInitAndExit() {
-        log.info("Running data initialization (--init-data)...");
-        dataInitializer.run();
-        log.info("Exiting after init-data.");
-        System.exit(0);
+        if (explicit) {
+            log.info("Running data initialization (--init-data)...");
+            dataInitializer.run();
+            log.info("Exiting after init-data.");
+            System.exit(0);
+        } else if (stateRepository.count() == 0) {
+            log.info("Empty database detected, running auto-initialization...");
+            dataInitializer.run();
+        }
     }
 
     @Override
