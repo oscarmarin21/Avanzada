@@ -6,15 +6,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+
+import java.util.Arrays;
 
 
 /**
  * Runs the data initializer in two modes:
  * <ul>
  *   <li>{@code --init-data} argument: seeds data then exits the process.</li>
- *   <li>Auto-init: if the state table is empty (fresh database), seeds data and continues normally.</li>
+ *   <li>Auto-init: if the state table is empty (fresh database), seeds data and continues normally.
+ *       Skipped during tests to avoid conflicts with test fixtures.</li>
  * </ul>
  */
 @Component
@@ -26,6 +30,7 @@ public class InitDataRunner implements ApplicationRunner, Ordered {
 
     private final DataInitializer dataInitializer;
     private final StateRepository stateRepository;
+    private final Environment environment;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -37,10 +42,16 @@ public class InitDataRunner implements ApplicationRunner, Ordered {
             dataInitializer.run();
             log.info("Exiting after init-data.");
             System.exit(0);
+        } else if (isTestEnvironment()) {
+            log.debug("Skipping auto-init in test environment.");
         } else if (stateRepository.count() == 0) {
             log.info("Empty database detected, running auto-initialization...");
             dataInitializer.run();
         }
+    }
+
+    private boolean isTestEnvironment() {
+        return Arrays.asList(environment.getActiveProfiles()).contains("test");
     }
 
     @Override
