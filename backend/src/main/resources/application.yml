@@ -66,3 +66,16 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:${MYSQL_USER:avanzada}}
     password: ${SPRING_DATASOURCE_PASSWORD:${MYSQL_PASSWORD:avanzada}}
     driver-class-name: org.mariadb.jdbc.Driver
+
+# Render (https://render.com): set SPRING_PROFILES_ACTIVE=render and add a PostgreSQL database.
+# Render provides DATABASE_URL in postgres://user:pass@host:port/db format.
+# RenderDataSourceConfig converts it to jdbc:postgresql://... automatically.
+---
+spring:
+  config:
+    activate:
+      on-profile: render
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

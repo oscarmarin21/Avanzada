@@ -13,4 +13,5 @@ WORKDIR /app
 EXPOSE 9000
 
 COPY --from=build /app/target/*.jar app.jar
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
+ENV SPRING_PROFILES_ACTIVE=docker
+ENTRYPOINT ["java", "-jar", "app.jar"]

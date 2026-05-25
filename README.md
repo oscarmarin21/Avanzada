@@ -153,11 +153,23 @@ The backend can optionally call an OpenAI-compatible LLM for:
 - Summary: the API returns a non-LLM fallback summary (request id, state, history count).
 - Suggest: the API returns `available: false` and a message; the client can ignore or show the message. Core flows (registration, classification, lifecycle, closure) never depend on AI and work normally.
 
-## Deployment (Railway + Vercel)
+## Deployment
 
-The backend is intended to be deployed on **[Railway](https://railway.com/)**, and the frontend on **[Vercel](https://vercel.com/)**.
+The backend can be deployed on **[Render](https://render.com/)** (recommended, free tier with PostgreSQL) or **[Railway](https://railway.com/)** (paid). The frontend can be deployed on **[Vercel](https://vercel.com/)**.
 
-### Backend on Railway
+### Backend on Render (recommended)
+
+1. Create a **PostgreSQL** database on Render (free tier available). Note the **Internal Database URL**.
+2. Create a **Web Service** from your GitHub repo. Set **Root Directory** to `backend`. Render detects the Dockerfile.
+3. Set **environment variables**:
+   - `SPRING_PROFILES_ACTIVE` = `render`
+   - `DATABASE_URL` = the **Internal Database URL** from your Render PostgreSQL (format `postgres://user:pass@host:port/db`; the app converts it to JDBC automatically via `RenderDataSourceConfig`).
+   - `JWT_SECRET` = a long random secret (at least 32 characters).
+   - `PORT` = `9000`
+4. Deploy. Note the public URL (e.g. `https://your-app.onrender.com`).
+5. To initialize data (reference data + test users), use the Render **Shell** tab: `java -Dspring.profiles.active=render -jar /app/app.jar --init-data`. Default admin: identifier `admin`, password `admin123` (change in production).
+
+### Backend on Railway (alternative, paid)
 
 1. Create a new project on Railway and add a **MySQL** (or MariaDB-compatible) database from the catalog.
 2. Add a **service** from this repo: use the **backend** directory as root (or set `RAILWAY_DOCKERFILE_PATH` to `backend/Dockerfile` if deploying from monorepo root).
@@ -173,14 +185,14 @@ The backend is intended to be deployed on **[Railway](https://railway.com/)**, a
 
 1. Import the repo in Vercel and set the **Root Directory** to `frontend`.
 2. Add **Environment Variable**:
-   - `API_URL` = your Railway backend URL including path to API (e.g. `https://your-app.railway.app/api`). The build script injects this into the Angular app.
+   - `API_URL` = your backend URL including path to API (e.g. `https://your-app.onrender.com/api` or `https://your-app.railway.app/api`). The build script injects this into the Angular app.
 3. Deploy. Vercel uses `vercel.json`: the build runs `node scripts/set-api-url.js && ng build --configuration=production`, which writes the API base URL into the production environment before building.
 
-The backend allows cross-origin requests (CORS) so the browser can call the API from the Vercel origin.
+The backend allows cross-origin requests (CORS) so the browser can call the API from the Vercel origin (configured for `*.vercel.app` and `*.onrender.com`).
 
 ### Docker (local or self-hosted)
 
-For local development or a single-machine deploy, use Docker Compose as described above: `docker compose up` runs MariaDB, backend (profile `docker`), and frontend (nginx proxying `/api/` to the backend). No Railway or Vercel required.
+For local development or a single-machine deploy, use Docker Compose as described above: `docker compose up` runs MariaDB, backend (profile `docker`), and frontend (nginx proxying `/api/` to the backend). No Render, Railway or Vercel required.
 
 ## Structure
 

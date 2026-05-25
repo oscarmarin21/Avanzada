@@ -38,6 +38,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "https://avanzada.vercel.app",
                 "https://*.vercel.app",
+                "https://*.onrender.com",
                 "http://localhost:4000",
                 "http://127.0.0.1:4000"
         ));
