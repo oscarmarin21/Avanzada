@@ -13,7 +13,7 @@ import java.net.URI;
 
 /**
  * For profile "render": provides a DataSource using DATABASE_URL from Render PostgreSQL.
- * Converts Render's postgres://user:pass@host:port/db to jdbc:postgresql://host:port/db.
+ * Converts Render's postgres:// or postgresql:// URL to jdbc:postgresql://host:port/db.
  */
 @Configuration
 @Profile("render")
@@ -37,18 +37,24 @@ public class RenderDataSourceConfig {
             ds.setPassword(springPass);
         } else if (databaseUrl != null && !databaseUrl.isBlank()) {
             log.info("Render DataSource: converting DATABASE_URL to JDBC");
-            URI uri = URI.create(databaseUrl.replace("postgres://", "postgresql://"));
-            String jdbcUrl = "jdbc:postgresql://" + uri.getHost() + ":" + uri.getPort() + uri.getPath();
+            String normalized = databaseUrl;
+            if (normalized.startsWith("postgres://")) {
+                normalized = "postgresql://" + normalized.substring("postgres://".length());
+            }
+            URI uri = URI.create(normalized);
+            int port = uri.getPort() > 0 ? uri.getPort() : 5432;
+            String jdbcUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + uri.getPath();
             ds.setJdbcUrl(jdbcUrl);
             log.info("Render DataSource: JDBC URL = {}", jdbcUrl);
-            String[] userInfo = uri.getUserInfo().split(":", 2);
-            ds.setUsername(userInfo[0]);
-            ds.setPassword(userInfo.length > 1 ? userInfo[1] : "");
+            String userInfo = uri.getUserInfo();
+            if (userInfo != null) {
+                String[] parts = userInfo.split(":", 2);
+                ds.setUsername(parts[0]);
+                ds.setPassword(parts.length > 1 ? parts[1] : "");
+            }
         } else {
-            log.warn("Render DataSource: DATABASE_URL is empty! Falling back to localhost.");
-            ds.setJdbcUrl("jdbc:postgresql://localhost:5432/avanzada");
-            ds.setUsername("avanzada");
-            ds.setPassword("avanzada");
+            log.error("Render DataSource: DATABASE_URL is empty! Set it in Render environment variables.");
+            throw new IllegalStateException("DATABASE_URL environment variable is required for the render profile");
         }
 
         ds.setDriverClassName("org.postgresql.Driver");
